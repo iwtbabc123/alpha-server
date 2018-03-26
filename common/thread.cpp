@@ -27,7 +27,10 @@ Thread::~Thread(){
 void Thread::start(void* params){
 	Thread_Data* data = new Thread_Data(func_, params);
 
-	pthread_create(&thread_id_, NULL, startThread, data);
+	if(pthread_create(&thread_id_, NULL, startThread, data)){
+		printf("Create thread failed.\n");
+		exit(1);
+	}
 	printf("thread start thread_id %u\n", (unsigned int)thread_id_);
 
 }

@@ -17,8 +17,4 @@ int main(int argc, char* argv[]){
     char* server_name = argv[1]+2;
     GateServer server;
     server.Start(server_name, "config.json");
-
-    GateServer server;
-    server.Start()
-
 }

@@ -1,7 +1,5 @@
-#include<stdio.h>
-#include <unistd.h>
-#include<memory>
 #include "thread_test.h"
+#include "util.h"
 
 Thread_test::Thread_test():int_val_(1){
 

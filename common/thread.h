@@ -1,8 +1,8 @@
 #ifndef __ALPHA_THREAD_H__
 #define __ALPHA_THREAD_H__
 
-#include <functional>
 #include <pthread.h>
+#include "util.h"
 
 namespace alpha{
 

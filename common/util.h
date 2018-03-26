@@ -3,8 +3,11 @@
 
 #include <stdio.h>
 #include <unistd.h>
-#include <signal.h>
 #include <memory>
 #include <functional>
+
+namespace alpha{
+
+}
 
 #endif

@@ -12,8 +12,8 @@ public:
 
     void Start(const char* server_name, const char* config_file);
 
-    void thread_socket();
-    void thread_worker();
+    void thread_socket(void* params);
+    void thread_worker(void* params);
 };
 
 #endif
