@@ -2,7 +2,19 @@
 
 namespace alpha{
 
-Thread::Thread():thread_id_(0){
+struct Thread_Data{
+	typedef Thread::ThreadFunc ThreadFunc;
+
+	ThreadFunc func_;
+	void* params_;
+
+	Thread_Data(ThreadFunc func, void* params):func_(std::move(func)),params_(params){
+		
+	}
+
+};
+
+Thread::Thread(ThreadFunc func):func_(std::move(func)),thread_id_(0){
 
 }
 
@@ -13,7 +25,11 @@ Thread::~Thread(){
 }
 
 void Thread::start(void* params){
-	pthread_create(&thread_id_, NULL, startThread, params);
+	Thread_Data* data = new Thread_Data(func_, params);
+
+	pthread_create(&thread_id_, NULL, startThread, data);
+	printf("thread start thread_id %u\n", (unsigned int)thread_id_);
+
 }
 
 void Thread::join(){
@@ -24,7 +40,7 @@ void* Thread::startThread(void* params){
 
 	Thread_Data* data = static_cast<Thread_Data*>(params);
 
-	data->func_(params);
+	data->func_(data->params_);
 }
 
 }

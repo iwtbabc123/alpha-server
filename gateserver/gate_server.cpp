@@ -41,12 +41,12 @@ GateServer::~GateServer(){
 void GateServer::Start(const char* server_name, const char* config_file){
 	LoadConfig(server_name, config_file);
 
-	auto f_socket = std::bind(this->thread_socket);
+	auto f_socket = std::bind(&GateServer::thread_socket, this, nullptr);
 
 	std::unique_ptr<Thread> up_socket = new Thread(f_socket);
 	up_socket->start();
 
-	auto f_worker = std::bind(this->thread_worker);
+	auto f_worker = std::bind(&GateServer::thread_worker, this, nullptr);
 
 	std::unique_ptr<Thread> up_worker = new Thread(f_worker);
 
