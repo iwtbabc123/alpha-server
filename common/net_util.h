@@ -2,8 +2,6 @@
 #ifndef __ALPHA_NET_UTIL_H__
 #define __ALPHA_NET_UTIL_H__
 
-#include <stdio.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <sys/socket.h>
 #include <netinet/in.h>

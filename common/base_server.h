@@ -19,11 +19,8 @@ public:
 
 	struct message_queue* MessageDispatch();
 
-protected:
-	void CreateThread(pthread_t* thread, void*(cb)(void*), void* arg);
-
 private:
-	std::unique_ptr<JsonHelper> m_json;
+	std::unique_ptr<JsonHelper> json_helper_;
 
 	MessageQueue mq_;
 
