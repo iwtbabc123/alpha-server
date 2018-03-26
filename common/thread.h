@@ -6,21 +6,12 @@
 
 namespace alpha{
 
-typedef std::function<void (void* params)> ThreadFunc;
-
-struct Thread_Data{
-	ThreadFunc func_;
-
-	Thread_Data(ThreadFunc func):func_(std::move(func)){
-		
-	}
-
-};
-
 class Thread{
 
 public:
-	Thread();
+	typedef std::function<void (void* params)> ThreadFunc;
+
+	Thread(ThreadFunc func);
 
 	~Thread();
 
@@ -31,6 +22,8 @@ public:
 	static void* startThread(void* params);
 
 private:
+	ThreadFunc func_;
+
 	pthread_t thread_id_;
 
 	bool started_;
