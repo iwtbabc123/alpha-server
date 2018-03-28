@@ -18,7 +18,7 @@ CCFLAGS += -std=c++11
 #-lprotobuf
 USER_LDFLAGS = 
 
-COMMON_O = common/util.o common/thread.o common/net_util.o common/dispatcher.o
+COMMON_O = common/util.o common/logger.o common/thread.o common/net_util.o common/dispatcher.o
 
 #GAME_O= gameserver/game_server.o gameserver/game_cpp2py.o gameserver/game_py2cpp.o gameserver/game_worker.o gameserver/main.o
 

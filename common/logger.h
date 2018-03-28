@@ -11,8 +11,9 @@
 #include <sys/time.h>
 #include "util.h"
 
-namespace pluto
-{
+using namespace std;
+
+namespace alpha{
 
 class Logger : public ofstream
 {
@@ -21,9 +22,9 @@ public:
 	~Logger();
 
 public:
-	void SetLogPath(const string& path);
+	void SetLogPath(const std::string& path);
 	void SetLogLevel(uint16_t log_level);
-	void SetServerName(const string& name);
+	void SetServerName(const std::string& name);
 	uint16_t GetLogLevel();
 
 	Logger& NewLine(int16_t log_type);
@@ -37,9 +38,9 @@ public:
 	friend ostream& EndLine(ostream& Logger);
 
 private:
-	string path_;
-	string file_;
-	string server_name_;
+	std::string path_;
+	std::string file_;
+	std::string server_name_;
 	uint16_t log_level_;
 };
 

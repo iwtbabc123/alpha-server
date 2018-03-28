@@ -1,5 +1,6 @@
 #include "dispatcher.h"
 #include "net_util.h"
+#include "logger.h"
 
 namespace alpha{
 
@@ -17,7 +18,7 @@ void Dispatcher::StartServer(uint16_t port){
 	int fd = netlib_socket();
 	if (fd < 0)
 	{
-		//LogError("netlib_socket error:%d",errno);
+		LogError("netlib_socket error:%d",errno);
 		exit(EXIT_FAILURE);
 	}
 
@@ -30,12 +31,12 @@ void Dispatcher::StartServer(uint16_t port){
 
 	if(netlib_bind(fd, port) < 0)
 	{
-		//LogError("netlib_bind error:%d\n",errno);
+		LogError("netlib_bind error:%d\n",errno);
 		exit(EXIT_FAILURE);
 	}
 	if (netlib_listen(fd,20))
 	{
-		//LogError("netlib_listen error:%d\n",errno);
+		LogError("netlib_listen error:%d\n",errno);
 		exit(EXIT_FAILURE);
 	}
 	
