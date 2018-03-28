@@ -3,7 +3,7 @@
 namespace alpha{
 
 MessageQueue::MessageQueue(){
-
+	
 	pthread_mutex_init(&mq2s_lock_, NULL);
 	pthread_cond_init(&mq2s_cond_, NULL);
 
@@ -11,8 +11,8 @@ MessageQueue::MessageQueue(){
 
 }
 
-MessageQueue::~MessageQueue()
-{
+MessageQueue::~MessageQueue(){
+
 	pthread_cond_destroy(&mq2s_cond_);
 
 	if (!mq2s_.empty())
