@@ -1,0 +1,12 @@
+{
+    "log_level":"15"
+    ,"log_path":"../log/"
+    ,"gate_list":"gate1,gate2"
+    ,"game_list":"game1,game2"
+    ,"db_list":"db1,db2"
+    ,"gate1":{
+        "ip":"0.0.0.0"
+        ,"port":4000
+    }
+
+}
