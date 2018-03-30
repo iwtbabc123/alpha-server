@@ -49,6 +49,7 @@ private:
 
 private:
 	std::list<message_queue*> mq2s_;
+	std::list<message_queue*> mq2c_;
 
 	pthread_mutex_t mq2s_lock_;
 	pthread_cond_t ms2q_cond_;

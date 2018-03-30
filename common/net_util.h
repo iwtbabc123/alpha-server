@@ -12,6 +12,7 @@ namespace alpha{
 
 extern int netlib_setnonblocking(int sockfd);
 extern int netlib_socket();
+extern int netlib_reuse_port(int sockfd, bool on);
 extern int netlib_bind(int sockfd, uint16_t port);
 extern int netlib_accept(int sockfd);
 extern int netlib_listen(int sockfd, int backlog);

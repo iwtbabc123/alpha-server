@@ -1,7 +1,6 @@
 #include "logger.h"
 
-namespace pluto
-{
+namespace alpha{
 
 Logger g_logger;
 
@@ -15,7 +14,7 @@ Logger::~Logger()
 
 }
 
-void Logger::SetLogPath(const string& path)
+void Logger::SetLogPath(const std::string& path)
 {
 	path_.assign(path);
 }
@@ -25,7 +24,7 @@ void Logger::SetLogLevel(uint16_t log_level)
 	log_level_ = log_level;
 }
 
-void Logger::SetServerName(const string& name)
+void Logger::SetServerName(const std::string& name)
 {
 	server_name_.assign(name);
 }
@@ -46,7 +45,7 @@ Logger& Logger::NewLine(int16_t log_type)
 	char szTemp[16];
 	memset(szTemp, 0, sizeof(szTemp));
 
-	string pszFormat;
+	std::string pszFormat;
 	if(log_type==LOG_ERROR)
 	{
 		pszFormat = "%Y%m%d.err";           //错误日志
@@ -191,7 +190,7 @@ void Log2File(int16_t log_type, const char* key, const char* msg, va_list& ap)
 		return;
 	}
 
-	string section;
+	std::string section;
 	switch (log_type)
 	{
 		case LOG_DEBUG:
