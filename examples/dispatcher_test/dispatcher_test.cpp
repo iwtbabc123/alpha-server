@@ -4,7 +4,7 @@ using namespace alpha;
 
 int main(){
 
-	Dispatcher server;
-	server.StartServer(4001);
+
+	Dispatcher::getInstance().StartServer(4001);
 
 }

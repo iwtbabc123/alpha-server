@@ -8,14 +8,22 @@ namespace alpha{
 
 class Dispatcher{
 public:
-    Dispatcher();
-
-    ~Dispatcher();
+    static Dispatcher& getInstance(){
+		static Dispatcher instance;
+		return instance;
+	}
 
     void StartServer(uint16_t port);
 
+    void OnAccept(int fd);
+
 public:
     static void accept_cb(struct ev_loop* loop, struct ev_io* watcher, int revents);
+
+private:
+    Dispatcher();
+
+    ~Dispatcher();
 
 private:
 	int AddEvent(struct ev_io* io_watcher, int fd, short events);

@@ -29,6 +29,8 @@ void Dispatcher::StartServer(uint16_t port){
 	linger.l_linger = 0;
 	setsockopt(fd, SOL_SOCKET, SO_LINGER, (const char *) &linger, sizeof(linger));
 
+	netlib_reuse_port(fd, true);
+
 	if(netlib_bind(fd, port) < 0)
 	{
 		LogError("netlib_bind error:%d\n",errno);
@@ -52,6 +54,29 @@ void Dispatcher::StartServer(uint16_t port){
 	//InitTimer();
 
 	ev_run(loop_, 0);
+}
+
+void Dispatcher::OnAccept(int fd){
+	LogDebug("EpollServer::OnAccept %d\n", fd);
+
+	int conn_fd = netlib_accept(fd);
+	if (conn_fd < 0)
+	{
+		LogError("accept error\n");
+	}
+
+	netlib_setnonblocking(conn_fd);
+
+	struct ev_io* conn_ev = (struct ev_io*) malloc(sizeof(struct ev_io));  //TODO, delete ptr
+	if (conn_ev == NULL)
+	{
+		LogError("malloc error in accept_cb\n");
+		return;
+	}
+
+	//ev_init(conn_ev, r_w_cb);
+	//AddEvent(conn_ev, conn_fd, EV_READ);
+	//AddChannel(conn_ev, conn_fd, FD_TYPE_SERVER);
 }
 
 int Dispatcher::AddEvent(struct ev_io* ev, int fd, short events){
@@ -102,6 +127,7 @@ void Dispatcher::accept_cb(struct ev_loop* loop, struct ev_io* watcher, int reve
 		return;
 	}
 	printf("accept_cb \n");
+	Dispatcher::getInstance().OnAccept(fd);
 	//EpollServer::getSingleton().OnAccept(fd);
 }
 
