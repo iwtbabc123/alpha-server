@@ -108,11 +108,12 @@ if __name__ == "__main__":
 	start_new(receiveMessage, (epoll_fd,))
 
 	print "now login"
-	#data = {"id":uniqid, "uid":"abcdefg"}
+	data = {"id":123, "uid":"abcdefg"}
 	#client.sendall(sendData(1, 12, data))  #
 	
 	_client = socket(AF_INET, SOCK_STREAM)
 	_addr = (HOST, PORT)
 	_client.connect(_addr)
+	_client.sendall(sendData(1, 12, data))
 
 	time.sleep(5)

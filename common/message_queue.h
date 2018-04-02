@@ -3,7 +3,7 @@
 
 #include <pthread.h>
 #include <list>
-#include "channel.h"
+#include <string>
 
 namespace alpha{
 //TODO,是否可以工作线程处理socket
@@ -11,7 +11,7 @@ namespace alpha{
 struct message_queue{
 	int sockfd;
 	int type;
-	std::unique_ptr<Buffer> buffer;
+	std::string buffer;
 }
 
 
@@ -26,6 +26,8 @@ public:
 public:
 	MessageQueue();
 	~MessageQueue();
+
+	void MQ2S_Push(int fd, int type, std::string& buffer);
 
 	struct message_queue* MQ2S_Pop();
 

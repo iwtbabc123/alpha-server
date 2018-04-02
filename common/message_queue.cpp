@@ -15,17 +15,10 @@ MessageQueue::~MessageQueue(){
 
 	pthread_cond_destroy(&mq2s_cond_);
 
-	if (!mq2s_.empty())
-	{
+	if (!mq2s_.empty()){
 		list<message_queue*>::iterator iter;
-		for(iter = mq2s_.begin(); iter != mq2s_.end(); ++iter)
-		{
+		for(iter = mq2s_.begin(); iter != mq2s_.end(); ++iter){
 			message_queue* mq = *iter;
-			if (mq->type == MQ_TYPE_PACK || mq->type == MQ_TYPE_CONNECT)
-			{
-				delete mq->pack;
-			}
-
 			delete mq;
 		}
 	}
@@ -33,17 +26,24 @@ MessageQueue::~MessageQueue(){
 	if (!mq2c_.empty())
 	{
 		list<message_queue*>::iterator iter2;
-		for(iter2 = mq2c_.begin(); iter2 != mq2c_.end(); ++iter2)
-		{
+		for(iter2 = mq2c_.begin(); iter2 != mq2c_.end(); ++iter2){
 			message_queue* mq2 = *iter2;
-			if (mq2->type == MQ_TYPE_PACK || mq2->type == MQ_TYPE_CONNECT)
-			{
-				delete mq2->pack;
-			}
-
 			delete mq2;
 		}
 	}
+}
+
+void MQ2S_Push(int fd, int type, std::string& buffer){
+	MQ2S_Lock();
+
+	message_queue* queue = new message_queue;
+	queue->fd = fd;
+	queue->type = type;
+	queue->buffer = buffer;
+	
+	mq2s_.push_back(queue);
+
+	MQ2S_Unlock();
 }
 
 struct message_queue* MQ2S_Pop(){
