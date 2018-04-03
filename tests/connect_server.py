@@ -16,12 +16,8 @@ client_dict = {}
 
 def sendData(command_id, sub_id, data):
 	json_data = json.dumps(data)
-	length = HEAD_LEN + len(json_data)
 
-	data = struct.pack('!ihh', length, command_id, sub_id)
-	senddata = data + json_data
-	print "==============>",len(senddata)
-	return senddata
+	return json_data
 
 
 def resolveRecvdata(fd):

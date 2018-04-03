@@ -1,4 +1,5 @@
 #include "dispatcher.h"
+#include "message_queue.h"
 #include "net_util.h"
 #include "logger.h"
 
@@ -73,7 +74,7 @@ void Dispatcher::OnAccept(int fd){
 	AddEvent(conn_ev, conn_fd, EV_READ);
 	//AddChannel(conn_ev, conn_fd, FD_TYPE_SERVER);
 
-	//MessageQueue::getInstance().MQ2S_Push(conn_fd, FD_TYPE_CONN, nullptr);
+	MessageQueue::getInstance().MQ2S_Push(conn_fd, FD_TYPE_CONN, nullptr);
 
 	//free(conn_ev);
 
@@ -87,6 +88,7 @@ void Dispatcher::OnRead(int fd){
 	//LogDebug("netlib_recv before%d\n", (int)strlen(in_buf.GetBuffer()));
 
 	char* buffer = (char*)malloc(READ_BUF_SIZE);
+	//char buffer[READ_BUF_SIZE] = {0};
 
 	int bytes = netlib_recv(fd, buffer, READ_BUF_SIZE);
 	if (bytes <= 0)
@@ -97,9 +99,12 @@ void Dispatcher::OnRead(int fd){
 		//LogInfo("remote close fd actively: %d\n", fd);
 		return;
 	}
-	LogInfo("Dispatcher::recv:%d bytes, %s\n", bytes, buffer);
-	//std::string str_buf(buffer);
-	//MessageQueue::getInstance().MQ2S_Push(0, FD_TYPE_READ, str_buf);
+
+	//LogInfo("Dispatcher::recv:%d bytes, %s \n", bytes, buffer);
+
+	std::string str_buf(buffer);
+	LogInfo("Dispatcher::recv:%d bytes, %s，%d\n", bytes, buffer, str_buf.size());
+	MessageQueue::getInstance().MQ2S_Push(0, FD_TYPE_READ, str_buf.c_str());
 
 }
 
