@@ -104,7 +104,7 @@ void Dispatcher::OnRead(int fd){
 
 	std::string str_buf(buffer);
 	LogInfo("Dispatcher::recv:%d bytes, %s，%d\n", bytes, buffer, str_buf.size());
-	MessageQueue::getInstance().MQ2S_Push(0, FD_TYPE_READ, str_buf.c_str());
+	MessageQueue::getInstance().MQ2S_Push(fd, FD_TYPE_READ, str_buf.c_str());
 
 }
 

@@ -1,11 +1,10 @@
 #ifndef __GATE_SERVER_H__
 #define __GATE_SERVER_H__
 
-#include "base_server.h"
-
+#include "util.h"
 using namespace alpha;
 
-class GateServer:public BaseServer{
+class GateServer{
 public:
     GateServer();
     ~GateServer();

@@ -22,8 +22,6 @@ public:
 private:
 	std::unique_ptr<JsonHelper> json_helper_;
 
-	MessageQueue mq_;
-
 };
 
 }
