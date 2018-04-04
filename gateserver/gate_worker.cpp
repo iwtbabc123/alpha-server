@@ -1,15 +1,32 @@
 #include "gate_worker.h"
 #include "logger.h"
 
-GateWorker::GateWorker():pModule_(NULL),pFunc_(NULL),pResult_(NULL){
+GateWorker::GateWorker():pModule_(nullptr),pFunc_(nullptr),pResult_(nullptr){
 	Py_Initialize();
 
+	if (!Py_IsInitialized())
+    {
+        LogDebug("py init error\n");
+    }
+
 	PyRun_SimpleString("import sys");
-	PyRun_SimpleString("sys.path.append('../pyscripts/')"); 
+	PyRun_SimpleString("sys.path.insert(0, '../pyscripts/')"); 
 
 	pModule_ = PyImport_ImportModule("pymain");
+	if(pModule_ != nullptr){
+		LogDebug("init module success\n");
+	}
+	else{
+		LogDebug("init module error\n");
+	}
 
 	pResult_ = PyObject_CallMethod(pModule_, const_cast<char*>("init"), "");
+	if(pResult_ != nullptr){
+		LogDebug("init success\n");
+	}
+	else{
+		LogDebug("init error\n");
+	}
 
 }
 
@@ -37,8 +54,11 @@ void GateWorker::Start(){
 			}
 			else
 			{
-				//LogDebug("return from py: %d, %s\n", result, ret);
+				LogDebug("return from py: %d, %s\n", result, ret);
 			}
+		}
+		else{
+			LogDebug("pResult_ error\n");
 		}
 	}
 }

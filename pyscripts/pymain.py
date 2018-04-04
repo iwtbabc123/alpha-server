@@ -5,3 +5,4 @@ def init():
 
 def OnServer(sockfd, type, data):
 	print("OnServer:%d,%d,%s"%(sockfd,type,data))
+	return 1,"success"

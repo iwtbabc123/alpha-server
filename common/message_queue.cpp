@@ -1,4 +1,5 @@
 #include "message_queue.h"
+#include "logger.h"
 
 namespace alpha{
 
@@ -42,18 +43,21 @@ void MessageQueue::MQ2S_Push(int fd, int type, const char* buffer){
 	
 	mq2s_.push_back(queue);
 
+	MQ2S_Signal();
+	
 	MQ2S_Unlock();
 }
 
 struct message_queue* MessageQueue::MQ2S_Pop(){
 
 	MQ2S_Lock();
-
+	LogDebug("mq2s_pop before");
 	while(mq2s_.empty()){
 		MQ2S_Wait();
 	}
+	LogDebug("mq2s_pop enter");
 
-	message_queue* queue = mq2s_.front();
+	struct message_queue* queue = mq2s_.front();
 	mq2s_.pop_front();
 
 	MQ2S_Unlock();
