@@ -1,6 +1,8 @@
 //#include <Python.h>
 #include "gate_server.h"
-#include "util.h"
+#include "dispatcher.h"
+#include "thread.h"
+#include "gate_worker.h"
 /*
 static PyObject*
 call_client(PyObject* self, PyObject* args)
@@ -30,7 +32,7 @@ static PyMethodDef PlutoMethods[] = {
 };
 */
 
-GateServer::GateServer():BaseServer(){
+GateServer::GateServer(){
 	//Py_InitModule("alphaEngine", AlphaMethods);
 }
 
@@ -59,8 +61,13 @@ void GateServer::Start(const char* server_name, const char* config_file){
 
 void GateServer::thread_socket(void* params){
 	printf("new thread_socket %u\n", (unsigned int)pthread_self());
+
+	Dispatcher::getInstance().StartServer(4002);
+
 }
 
 void GateServer::thread_worker(void* params){
 	printf("new thread_worker %u\n", (unsigned int)pthread_self());
+
+	GateWorker::getInstance().Start();
 }

@@ -16,9 +16,11 @@ public:
     void StartServer(uint16_t port);
 
     void OnAccept(int fd);
+    void OnRead(int fd);
 
 public:
     static void accept_cb(struct ev_loop* loop, struct ev_io* watcher, int revents);
+    static void r_w_cb(struct ev_loop* loop, struct ev_io* watcher, int revents);
 
 private:
     Dispatcher();

@@ -3,7 +3,7 @@
 
 #include <pthread.h>
 #include <list>
-#include "channel.h"
+#include "util.h"
 
 namespace alpha{
 //TODO,是否可以工作线程处理socket
@@ -11,8 +11,8 @@ namespace alpha{
 struct message_queue{
 	int sockfd;
 	int type;
-	std::unique_ptr<Buffer> buffer;
-}
+	const char* buffer;
+};
 
 
 class MessageQueue{
@@ -26,6 +26,8 @@ public:
 public:
 	MessageQueue();
 	~MessageQueue();
+
+	void MQ2S_Push(int fd, int type, const char* buffer);
 
 	struct message_queue* MQ2S_Pop();
 
@@ -52,7 +54,7 @@ private:
 	std::list<message_queue*> mq2c_;
 
 	pthread_mutex_t mq2s_lock_;
-	pthread_cond_t ms2q_cond_;
+	pthread_cond_t mq2s_cond_;
 
 	pthread_mutex_t mq2c_lock_;
 
