@@ -1,5 +1,6 @@
 #include "dispatcher.h"
 #include "message_queue.h"
+#include "channel.h"
 #include "net_util.h"
 #include "logger.h"
 
@@ -72,7 +73,7 @@ void Dispatcher::OnAccept(int fd){
 
 	ev_init(conn_ev, r_w_cb);
 	AddEvent(conn_ev, conn_fd, EV_READ);
-	//AddChannel(conn_ev, conn_fd, FD_TYPE_SERVER);
+	AddChannel(conn_ev, conn_fd);
 
 	MessageQueue::getInstance().MQ2S_Push(conn_fd, FD_TYPE_CONN, nullptr);
 
@@ -91,12 +92,17 @@ void Dispatcher::OnRead(int fd){
 	//char buffer[READ_BUF_SIZE] = {0};
 
 	int bytes = netlib_recv(fd, buffer, READ_BUF_SIZE);
-	if (bytes <= 0)
-	{
+	if (bytes == 0){  //close
 		//remote close fd actively
-		//RemoveEvent(fd, channel);
-		//OnFdClosed(fd, fdtype);
-		//LogInfo("remote close fd actively: %d\n", fd);
+		RemoveEvent(fd);
+		OnFdClosed(fd);
+		LogInfo("remote close fd actively: %d\n", fd);
+		return;
+	}
+	else if(bytes < 0){  //error
+		LogInfo("OnRead fd error\n");
+		RemoveEvent(fd);
+		OnFdClosed(fd);
 		return;
 	}
 
@@ -133,19 +139,67 @@ int Dispatcher::UpdateEvent(int fd, short events, Channel* channel)
 
 	return 0;
 }
-
-void Dispatcher::RemoveEvent(int fd, Channel* channel)
-{
+*/
+void Dispatcher::RemoveEvent(int fd){
 	LogDebug("RemoveEvent: %d\n",fd);
+
+	Channel* channel = this->GetChannel(fd);
+	if(channel == nullptr){
+		return;
+	}
+
 	struct ev_io* io_watcher = channel->GetIoWatcher();
-	if (io_watcher == NULL)
-	{
+	if (io_watcher == nullptr){
 		LogError("RemoveEvent error:io_watcher null\n");
 		return;
 	}
 	ev_io_stop(loop_, io_watcher);
 }
-*/
+
+
+Channel* Dispatcher::GetChannel(int fd)
+{
+	auto iter = channel_map_.find(fd);
+	if (iter == channel_map_.end()){
+		return nullptr;
+	}
+	else{
+		return iter->second;
+	}
+}
+
+void Dispatcher::AddChannel(struct ev_io* io_watcher, int fd)
+{
+	auto iter = channel_map_.lower_bound(fd);
+	if (iter != channel_map_.end() && iter->first == fd){
+		//Channel* p = iter->second;
+		LogWarning("AddChannel error, channel exists\n");
+
+		//Channel* channel = iter->second; //TODO, modify or other
+	}
+	else{
+		Channel* channel = new Channel(fd, io_watcher);
+		channel_map_.insert(iter, make_pair(fd, channel));
+	}
+}
+
+void Dispatcher::OnFdClosed(int fd){
+	LogDebug("OnFdClosed %d\n", fd);
+	ChannelMap::iterator iter = channel_map_.find(fd);
+	if (iter != channel_map_.end()){
+		Channel* channel = iter->second;
+		channel_map_.erase(fd);
+
+		delete channel;
+		channel = nullptr;
+	}
+
+		//let py to remove this socket
+		//uint32_t uniqid = GetUniqidFromFd(fd);
+		//MessageQueue::getSingleton().MQ2S_Push_Close(uniqid);
+
+		//RemoveFd2Uniqid(fd);
+}
 
 void Dispatcher::accept_cb(struct ev_loop* loop, struct ev_io* watcher, int revents){
 	int fd = watcher->fd;

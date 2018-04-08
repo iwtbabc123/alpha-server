@@ -2,10 +2,12 @@
 #define __ALPHA_DISPATCHER_H__
 
 #include <ev.h>
+#include <map>
 #include "util.h"
 
 namespace alpha{
 
+class Channel;
 class Dispatcher{
 public:
     static Dispatcher& getInstance(){
@@ -32,12 +34,20 @@ private:
 
 	//int UpdateEvent(int fd, short events, Channel* channel);
 
-	//void RemoveEvent(int fd, Channel* channel);
+	void RemoveEvent(int fd);
+
+    Channel* GetChannel(int fd);
+
+    void AddChannel(ev_io* io_watcher, int fd);
+
+    void OnFdClosed(int fd);  //RemoveChannel
 
 private:
     struct ev_loop* loop_;
     bool running_;
     
+    typedef std::map<int, Channel*> ChannelMap;
+    ChannelMap channel_map_;
 
 };
 
