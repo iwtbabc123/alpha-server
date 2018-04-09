@@ -1,0 +1,27 @@
+syntax="proto3";
+package alpha.server;
+
+option py_generic_services = true;
+
+message Void {
+
+}
+
+message ConnectServerRequest {
+	int32 entityid = 1; 	// 断线重连或者BIND_AVATAR的时候需要的avatar entity id
+	string authmsg = 2; 	// 验证消息
+}
+
+// Client的连接服务器的信息
+message ConnectServerReply{
+	int32 entityid = 1;	//当前avatar的id, 用于重连恢复
+	string extramsg = 2;	//要给客户端的额外信息
+}
+
+// Entity的RPC调用
+message EntityMessage {
+	int32 id = 1; // Entity的id	
+	string method = 2; // Entity的方法名
+	// RPC调用的参数, 不强制如何序列化，可以用BSON, protobuf,或者其他
+	string parameters = 3;
+}
