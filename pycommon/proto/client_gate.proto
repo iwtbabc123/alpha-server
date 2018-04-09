@@ -1,0 +1,21 @@
+syntax="proto3";
+import "common.proto";
+package alpha.server;
+
+option py_generic_services = true;
+
+// 客户端发给Gate服务器
+service IGateService {
+	// 连接服务器，进行认证
+	rpc connect_server(ConnectServerRequest) returns (Void);
+	// Entity消息
+	rpc entity_message(EntityMessage) returns (Void); 
+}
+
+// Gate服务器发给客户端
+service IGateClient {
+	// 对客户端的连接请求进行回复
+	rpc connect_reply(ConnectServerReply) returns (Void);
+
+	rpc entity_message(EntityMessage) returns (Void); // Entity消息 
+}
