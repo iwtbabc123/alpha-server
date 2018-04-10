@@ -10,7 +10,7 @@ GateWorker::GateWorker():pModule_(nullptr),pFunc_(nullptr),pResult_(nullptr){
     }
 
 	PyRun_SimpleString("import sys");
-	PyRun_SimpleString("sys.path.insert(0, '../pyscripts/')"); 
+	PyRun_SimpleString("sys.path.insert(0, '../pyscripts/gate/')"); 
 
 	pModule_ = PyImport_ImportModule("pymain");
 	if(pModule_ != nullptr){
