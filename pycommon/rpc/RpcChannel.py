@@ -13,20 +13,20 @@ class RpcChannel(service.RpcChannel):
 		self.conn = conn
 		
 		self.rpc_controller = RpcController(self)
-		print "RpcChannel init"
+		print("RpcChannel init")
 	
 	def set_rpc_service(self, rpc_service):
 		self.rpc_service = rpc_service
 	
 	def CallMethod(self, method_descriptor, rpc_controller,
                  request, response_class, done):
-		print "RpcChannel CallMethod"
+		print("RpcChannel CallMethod")
 		index = method_descriptor.index
 		data = request.SerializeToString()
 		total_len = len(data) + 6
 		self.logger.debug("CallMethod:%d,%d"%(total_len,index))
 		
-		self.conn.send_data(''.join([struct.pack('!ih', total_len, index), data]))
+		self.conn.send_data(b''.join([struct.pack('!ih', total_len, index), data]))
 		
 	def input_data(self, data):
 		total_len, index = struct.unpack('!ih', data[0:6])
@@ -41,8 +41,8 @@ class RpcChannel(service.RpcChannel):
 			
 			rpc_service.CallMethod(method, self.rpc_controller, request, None)
 			
-		except Exception, e:
+		except Exception as e:
 			self.logger.error("Call rpc method failed!")
-			print "error:",e
+			print("error:%s"%e)
 			self.logger.log_last_except()
 		return True

@@ -1,1 +1,1 @@
-protoc.exe --python_out=../proto_python common.proto client_gate.proto
+protoc.exe --python_out=../proto_python echo_test.proto common.proto client_gate.proto
