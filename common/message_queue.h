@@ -12,6 +12,7 @@ struct message_queue{
 	int sockfd;
 	int type;
 	const char* buffer;
+	int size;
 };
 
 
@@ -27,7 +28,7 @@ public:
 	MessageQueue();
 	~MessageQueue();
 
-	void MQ2S_Push(int fd, int type, const char* buffer);
+	void MQ2S_Push(int fd, int type, const char* buffer, int size);
 
 	struct message_queue* MQ2S_Pop();
 

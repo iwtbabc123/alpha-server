@@ -43,7 +43,7 @@ void GateWorker::Start(){
 		q = MessageDispatch();
 		LogDebug("GateWorker:Start after\n");
 		//call python to deal data
-		pResult_ = PyObject_CallMethod(pModule_, const_cast<char*>("OnServer"), const_cast<char*>("iis"), q->sockfd, q->type, q->buffer);
+		pResult_ = PyObject_CallMethod(pModule_, const_cast<char*>("OnServer"), const_cast<char*>("iis#"), q->sockfd, q->type, q->buffer,q->size);
 		if (pResult_ != NULL){
 			char* ret;
 			int result = 0;
@@ -60,6 +60,7 @@ void GateWorker::Start(){
 		else{
 			LogDebug("pResult_ error\n");
 		}
+		//free(q->buffer);
 	}
 }
 

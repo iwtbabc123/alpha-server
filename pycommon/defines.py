@@ -1,0 +1,3 @@
+
+FD_TYPE_CONN		= 1
+FD_TYPE_READ		= 2
