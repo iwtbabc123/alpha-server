@@ -32,7 +32,7 @@ MessageQueue::~MessageQueue(){
 	}
 }
 
-void MessageQueue::MQ2S_Push(int fd, int type, const char* buffer){
+void MessageQueue::MQ2S_Push(int fd, int type, const char* buffer, int size){
 	MQ2S_Lock();
 
 	message_queue* queue = new message_queue;
@@ -40,6 +40,7 @@ void MessageQueue::MQ2S_Push(int fd, int type, const char* buffer){
 	queue->type = type;
 	//std::string s(buffer);
 	queue->buffer = buffer;
+	queue->size = size;
 	
 	mq2s_.push_back(queue);
 
