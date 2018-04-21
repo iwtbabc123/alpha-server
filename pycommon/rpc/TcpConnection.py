@@ -1,5 +1,5 @@
 import logger
-
+from defines import *
 
 class TcpConnection():
 
@@ -12,7 +12,7 @@ class TcpConnection():
 		self.logger = logger.get_logger('TcpConnection')
 		self.sockfd = sockfd
 
-		self.writebuff = b''
+		#self.writebuff = b''
 		self.recv_buff_size = TcpConnection.DEFAULT_RECV_BUFFER
 
 		self.status = TcpConnection.ST_INIT
@@ -51,8 +51,12 @@ class TcpConnection():
 		self.status = TcpConnection.ST_DISCONNECTED
 
 	def send_data(self, data):
+		print("TcpConnection send_data",type(data),len(data))
 		#self.writebuff += str(data, 'utf-8')
-		self.writebuff += data
+		#self.writebuff += data
+		import alphaEngine
+		alphaEngine.OnClient(self.sockfd, FD_TYPE_CLIENT, str(data, encoding = "utf8"))
+		pass
 
 	def recv_data(self,data):
 		print("recv_data")

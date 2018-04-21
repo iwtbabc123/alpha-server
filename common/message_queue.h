@@ -32,6 +32,10 @@ public:
 
 	struct message_queue* MQ2S_Pop();
 
+public:
+	void MQ2C_Push(int fd, int type, char* data, int size);
+	struct message_queue* MQ2C_Pop();
+
 private:
 	bool _Push_With_Notify(message_queue* queue);
 

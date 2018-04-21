@@ -1,9 +1,9 @@
 # coding:utf8
 
-from proto_python import client_gate_pb2
+from proto_python.client_gate_pb2 import IGateService,IGateClient_Stub
 from proto_python.common_pb2 import ConnectServerReply
 
-class GateService(client_gate_pb2.IGateService):
+class GateService(IGateService):
 	def __init__(self):
 		pass
 
@@ -17,6 +17,9 @@ class GateService(client_gate_pb2.IGateService):
 		response.extramsg = "echo:"+msg + str(entityid)
 		
 		print("response.msg:%s"%response.extramsg)
+
+		client_stub = IGateClient_Stub(rpc_channel)
+		client_stub.connect_reply(controller, response, None)
 
 	def entity_message(self, controller, request, _done):
 		pass

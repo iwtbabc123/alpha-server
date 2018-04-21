@@ -1,5 +1,7 @@
 #include "message_queue.h"
 #include "logger.h"
+#include "net_util.h"
+#include "dispatcher.h"
 
 namespace alpha{
 
@@ -63,6 +65,43 @@ struct message_queue* MessageQueue::MQ2S_Pop(){
 
 	MQ2S_Unlock();
 
+	return queue;
+}
+
+void MessageQueue::MQ2C_Push(int fd, int type, char* data, int size){
+
+	LogDebug("MessageQueue::mq2c_Push:%d,%d,%s,%d\n",fd, type ,data, size);
+	MQ2C_Lock();
+
+	message_queue* queue = new message_queue;
+	queue->sockfd = fd;
+	queue->type = type;
+	queue->buffer = data;
+	queue->size = size;
+	mq2c_.push_back(queue);
+
+	int ret = netlib_eventfd_write(Dispatcher::getInstance().Eventfd());
+	if (ret != 0)
+	{
+		LogError("EpollServer::eventfd write error\n");
+	}
+
+	MQ2C_Unlock();
+}
+
+struct message_queue* MessageQueue::MQ2C_Pop(){
+	LogDebug("MessageQueue::mq2c_Pop\n");
+	MQ2C_Lock();
+
+	if (mq2c_.empty())
+	{
+		MQ2C_Unlock();  //forgot it
+		return nullptr;
+	}
+	message_queue* queue = mq2c_.front();
+	mq2c_.pop_front();
+
+	MQ2C_Unlock();
 	return queue;
 }
 
