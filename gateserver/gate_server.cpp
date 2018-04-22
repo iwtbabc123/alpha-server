@@ -3,37 +3,8 @@
 #include "dispatcher.h"
 #include "thread.h"
 #include "gate_worker.h"
-/*
-static PyObject*
-call_client(PyObject* self, PyObject* args)
-{
-	//LogDebug("py->cpp call_client\n");
-
-	int uniqid;
-	int command_id;  //用uint16_t会读不到数据
-	int sub_id;
-	char* str;
-	if (!PyArg_ParseTuple(args, "iiis", &uniqid, &command_id, &sub_id, &str))
-		Py_RETURN_NONE;
-	MessageQueue::getSingleton().MQ2C_Push(uniqid, command_id, sub_id, str);
-	
-	Py_RETURN_NONE;
-}
-
-static PyMethodDef PlutoMethods[] = {
-    {"call_client", call_client, METH_VARARGS, "Call client method"},
-    //{"broad_cast", broad_cast, METH_VARARGS, "broadcast method"},
-    //{"add_timer", add_timer, METH_VARARGS, "add_timer method"},
-    //{"on_load", on_load, METH_VARARGS, "on_load method"},
-    //{"on_save", on_save, METH_VARARGS, "on_save method"},
-    //{"log_info", log_info, METH_VARARGS, "log info"},
-    //{"add_repeat_timer", add_repeat_timer, METH_VARARGS, "add_repeat_timer method"},
-    {NULL, NULL, 0, NULL}
-};
-*/
 
 GateServer::GateServer(){
-	//Py_InitModule("alphaEngine", AlphaMethods);
 }
 
 GateServer::~GateServer(){

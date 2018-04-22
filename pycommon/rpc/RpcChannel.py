@@ -32,7 +32,8 @@ class RpcChannel(service.RpcChannel):
 	def input_data(self, data):
 		print("input_data:%d"%len(data))
 		print("typeofdata",type(data))
-		data = bytes(data, encoding = "utf8")
+		if isinstance(data, str):
+			data = bytes(data, encoding = "utf8")
 		print("typeofdata",type(data),len(data))
 		total_len, index = struct.unpack('!ih', data[0:6])
 		#self.logger.debug("input_data:%d,%d" % (total_len, index))
