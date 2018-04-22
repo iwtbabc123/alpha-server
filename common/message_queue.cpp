@@ -76,7 +76,9 @@ void MessageQueue::MQ2C_Push(int fd, int type, char* data, int size){
 	message_queue* queue = new message_queue;
 	queue->sockfd = fd;
 	queue->type = type;
-	queue->buffer = data;
+	char* tmp = (char*)malloc(sizeof(char) * size);
+	memcpy(tmp, data, size);
+	queue->buffer = tmp;
 	queue->size = size;
 	mq2c_.push_back(queue);
 

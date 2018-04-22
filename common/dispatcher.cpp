@@ -51,7 +51,7 @@ void Dispatcher::StartServer(uint16_t port){
 
 	//LogInfo("EpollServer::StartServer:listen fd:%d\n",fd);
 	
-	//InitEventfd();
+	InitEventFd();
 	//InitTimer();
 
 	ev_run(loop_, 0);

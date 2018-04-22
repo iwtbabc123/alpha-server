@@ -15,7 +15,7 @@ LISTEN_PORT = 4002
 # 被调用方,接收调用方(stub)的rpc请求
 class MyGateClient(IGateClient):
 	def connect_reply(self, rpc_controller, request, done):
-		print("MyEchoClientReply:%s"%request.msg)
+		print("MyEchoClientReply:%s"%request.extramsg)
 		
 
 if __name__ == "__main__":
