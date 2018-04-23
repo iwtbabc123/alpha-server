@@ -74,7 +74,7 @@ GateWorker::GateWorker():pModule_(nullptr),pFunc_(nullptr),pResult_(nullptr){
 		LogDebug("init module error\n");
 	}
 
-	pResult_ = PyObject_CallMethod(pModule_, const_cast<char*>("init"), "");
+	pResult_ = PyObject_CallMethod(pModule_, "init", "");
 	if(pResult_ != nullptr){
 		LogDebug("init success\n");
 	}
@@ -88,8 +88,26 @@ GateWorker::~GateWorker(){
 	Py_Finalize();
 }
 
+void GateWorker::OnServer(struct message_queue* q){
+	pResult_ = PyObject_CallMethod(pModule_, "OnServer", "iis#", q->sockfd, q->type, q->buffer,q->size);
+	if (pResult_ != NULL){
+		char* ret;
+		int result = 0;
 
-
+		if (PyArg_ParseTuple(pResult_, "i|s",  &result, &ret) == -1)
+		{
+			LogDebug("error return\n");
+		}
+		else
+		{
+			LogDebug("return from py: %d, %s\n", result, ret);
+		}
+	}
+	else{
+		LogDebug("pResult_ error\n");
+	}
+}
+/*
 void GateWorker::Start(){
 	struct message_queue* q = nullptr;
 	while(1){
@@ -97,7 +115,7 @@ void GateWorker::Start(){
 		q = MessageDispatch();
 		LogDebug("GateWorker:Start after\n");
 		//call python to deal data
-		pResult_ = PyObject_CallMethod(pModule_, const_cast<char*>("OnServer"), const_cast<char*>("iis#"), q->sockfd, q->type, q->buffer,q->size);
+		pResult_ = PyObject_CallMethod(pModule_, "OnServer", "iis#", q->sockfd, q->type, q->buffer,q->size);
 		if (pResult_ != NULL){
 			char* ret;
 			int result = 0;
@@ -117,8 +135,10 @@ void GateWorker::Start(){
 		//free(q->buffer);
 	}
 }
-
+*/
+/*
 struct message_queue* GateWorker::MessageDispatch(){
 	return MessageQueue::getInstance().MQ2S_Pop();
 }
+*/
 

@@ -1,3 +1,6 @@
+/*
+*消息队列
+*/
 #ifndef __ALPHA_MQ_H__
 #define __ALPHA_MQ_H__
 
@@ -6,7 +9,6 @@
 #include "util.h"
 
 namespace alpha{
-//TODO,是否可以工作线程处理socket
 
 struct message_queue{
 	int sockfd;
@@ -14,7 +16,6 @@ struct message_queue{
 	const char* buffer;
 	int size;
 };
-
 
 class MessageQueue{
 

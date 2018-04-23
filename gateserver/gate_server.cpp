@@ -1,6 +1,7 @@
 //#include <Python.h>
 #include "gate_server.h"
 #include "dispatcher.h"
+#include "worker.h"
 #include "thread.h"
 #include "gate_worker.h"
 
@@ -40,5 +41,8 @@ void GateServer::thread_socket(void* params){
 void GateServer::thread_worker(void* params){
 	printf("new thread_worker %u\n", (unsigned int)pthread_self());
 
-	GateWorker::getInstance().Start();
+	//GateWorker::getInstance().Start();
+	auto deal_mq_func = std::bind(&GateWorker::OnServer, &GateWorker::getInstance(), std::placeholders::_1);
+	Worker::getInstance().Start(deal_mq_func);
+
 }
