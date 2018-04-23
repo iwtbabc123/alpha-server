@@ -17,7 +17,6 @@ public:
 		return instance;
 	}
 
-
     void StartServer(uint16_t port);
 
     void OnAccept(int fd);

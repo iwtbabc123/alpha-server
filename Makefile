@@ -19,7 +19,8 @@ CCFLAGS += -std=c++11
 USER_LDFLAGS = 
 
 COMMON_O = common/util.o common/logger.o common/thread.o common/net_util.o \
-			common/message_queue.o common/channel.o common/dispatcher.o
+			common/message_queue.o common/channel.o common/dispatcher.o \
+			common/worker.o
 
 GATE_O = gateserver/gate_worker.o gateserver/gate_server.o gateserver/main.o
 
