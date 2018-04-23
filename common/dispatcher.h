@@ -4,16 +4,19 @@
 #include <ev.h>
 #include <map>
 #include "util.h"
+#include "channel.h"
 
 namespace alpha{
 
-class Channel;
+typedef std::shared_ptr<Channel> SP_Channel;
+
 class Dispatcher{
 public:
     static Dispatcher& getInstance(){
 		static Dispatcher instance;
 		return instance;
 	}
+
 
     void StartServer(uint16_t port);
 
@@ -38,11 +41,11 @@ private:
 private:
 	int AddEvent(struct ev_io* io_watcher, int fd, short events);
 
-	int UpdateEvent(int fd, short events, Channel* channel);
+	int UpdateEvent(int fd, short events, SP_Channel channel);
 
 	void RemoveEvent(int fd);
 
-    Channel* GetChannel(int fd);
+    SP_Channel GetChannel(int fd);
 
     void AddChannel(ev_io* io_watcher, int fd);
 
@@ -56,8 +59,7 @@ private:
     bool running_;
 
     int eventfd_;
-
-    typedef std::map<int, Channel*> ChannelMap;
+    typedef std::map<int, SP_Channel> ChannelMap;
     ChannelMap channel_map_;
 
 };

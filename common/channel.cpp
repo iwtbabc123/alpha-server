@@ -1,4 +1,5 @@
 #include "channel.h"
+#include "logger.h"
 
 namespace alpha{
 
@@ -7,9 +8,8 @@ Channel::Channel(int fd, struct ev_io* io_watcher):fd_(fd),io_watcher_(io_watche
 }
 
 
-Channel::~Channel()
-{
-	//LogDebug("Channel::~Channel\n");
+Channel::~Channel(){
+	LogDebug("Channel::~Channel\n");
 	close(fd_);
 
 	if (io_watcher_ != nullptr)
