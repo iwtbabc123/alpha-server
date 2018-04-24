@@ -23,6 +23,7 @@ int netlib_socket(){
 int netlib_reuse_port(int sockfd, bool on){
 	int optval = on ? 1 : 0;
 	setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR,&optval, sizeof(optval));
+	return 0;
 }
 
 int netlib_bind(int sockfd, uint16_t port){
