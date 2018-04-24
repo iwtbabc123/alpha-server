@@ -21,8 +21,15 @@ namespace alpha{
 #define LOG_ERROR		0x08  //LOG_ERROR
 #define LOG_ALL			0xff  //LOG_ALL
 
+//to worker fd
 #define FD_TYPE_CONN	1
 #define FD_TYPE_READ	2
+
+//to socket fd
+#define FD_TYPE_CLIENT	11
+#define FD_TYPE_SERVER	12
+#define FD_TYPE_TIMER	13
+
 }
 
 #endif

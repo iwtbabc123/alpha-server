@@ -2,6 +2,7 @@
 #define __GATE_SERVER_H__
 
 #include "util.h"
+#include "message_queue.h"
 using namespace alpha;
 
 class GateServer{
@@ -13,6 +14,7 @@ public:
 
     void thread_socket(void* params);
     void thread_worker(void* params);
+
 };
 
 #endif

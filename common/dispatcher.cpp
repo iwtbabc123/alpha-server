@@ -1,12 +1,11 @@
 #include "dispatcher.h"
 #include "message_queue.h"
-#include "channel.h"
 #include "net_util.h"
 #include "logger.h"
 
 namespace alpha{
 
-Dispatcher::Dispatcher():loop_(nullptr),running_(false){
+Dispatcher::Dispatcher():loop_(nullptr),running_(false),eventfd_(0){
 
 }
 
@@ -14,6 +13,8 @@ Dispatcher::~Dispatcher(){
 	if(loop_ != nullptr){
 		ev_loop_destroy(loop_);
 	}
+
+	close(eventfd_);
 }
 
 void Dispatcher::StartServer(uint16_t port){
@@ -49,7 +50,7 @@ void Dispatcher::StartServer(uint16_t port){
 
 	//LogInfo("EpollServer::StartServer:listen fd:%d\n",fd);
 	
-	//InitEventfd();
+	InitEventFd();
 	//InitTimer();
 
 	ev_run(loop_, 0);
@@ -75,7 +76,7 @@ void Dispatcher::OnAccept(int fd){
 	AddEvent(conn_ev, conn_fd, EV_READ);
 	AddChannel(conn_ev, conn_fd);
 
-	MessageQueue::getInstance().MQ2S_Push(conn_fd, FD_TYPE_CONN, nullptr);
+	MessageQueue::getInstance().MQ2S_Push(conn_fd, FD_TYPE_CONN, nullptr, 0);
 
 	//free(conn_ev);
 
@@ -88,8 +89,8 @@ void Dispatcher::OnRead(int fd){
 
 	//LogDebug("netlib_recv before%d\n", (int)strlen(in_buf.GetBuffer()));
 
-	char* buffer = (char*)malloc(READ_BUF_SIZE);
-	//char buffer[READ_BUF_SIZE] = {0};
+	//char* buffer = (char*)malloc(READ_BUF_SIZE);
+	char buffer[READ_BUF_SIZE] = {0};
 
 	int bytes = netlib_recv(fd, buffer, READ_BUF_SIZE);
 	if (bytes == 0){  //close
@@ -107,11 +108,205 @@ void Dispatcher::OnRead(int fd){
 	}
 
 	//LogInfo("Dispatcher::recv:%d bytes, %s \n", bytes, buffer);
+	char* tmp = (char*)malloc(sizeof(char) * bytes);
+	memcpy(tmp, buffer, bytes);
+	//std::string str_buf(buffer);
+	LogInfo("Dispatcher::recv:%d bytes\n", bytes);
+	MessageQueue::getInstance().MQ2S_Push(fd, FD_TYPE_READ, tmp, bytes);
 
-	std::string str_buf(buffer);
-	LogInfo("Dispatcher::recv:%d bytes, %s，%d\n", bytes, buffer, str_buf.size());
-	MessageQueue::getInstance().MQ2S_Push(fd, FD_TYPE_READ, str_buf.c_str());
+}
 
+void Dispatcher::OnWrite(int fd){
+	LogDebug("EpollServer::OnWrite:%d\n",fd);
+	//if (fdtype == FD_TYPE_SERVER)
+	//{
+	auto channel = this->GetChannel(fd);
+	if (channel == nullptr)
+	{
+		LogError("EpollServer::OnWrite channel null\n");
+		return;
+	}
+	//}
+	/*
+	else if (fdtype == FD_TYPE_CONNECT)
+	{
+		channel = GetConnector(fd);
+		if (channel == NULL)
+		{
+			LogError("EpollServer::OnWrite connector null\n");
+			return;
+		}
+	}
+	else
+	{
+		return;
+	}
+	*/
+
+	//Buffer& out_buf = channel->OutBuffer();
+
+	int events = EV_READ;
+
+	while(!channel->empty())
+	{
+		struct message_queue* mq = channel->pop_front();
+
+		LogDebug("EpollServer::OnWrite send_len %d\n", mq->size);
+
+		char* tmp = (char*)malloc(sizeof(char) * mq->size);
+		memcpy(tmp, mq->buffer, mq->size);
+		//TODO,只发送一部分mq，剩余的尚未处理
+		int ret = netlib_send(fd, tmp, mq->size);
+		if (ret == -1)  //TODO,发送不成功要重新发送
+		{
+			LogWarning("netlib_send -1\n");
+			//
+			//UpdateEvent(fd, EPOLLIN | EPOLLOUT);
+			events |= EV_WRITE;
+			break;
+		}
+		else if (ret == 0)
+		{	
+			LogDebug("netlib_send 0\n");
+			break;
+		}
+		else if (ret > 0)
+		{
+			LogDebug("netlib_send %d\n", ret);
+		}
+	}
+
+	UpdateEvent(fd, events, channel);
+}
+
+void Dispatcher::OnEventfd(int efd)
+{
+	LogDebug("EpollServer::OnEventfd %d\n",efd);
+	if (efd != eventfd_)
+	{
+		LogError("EpollServer::OnEventfd error %d != %d\n",efd, eventfd_);
+	}
+
+	int ret = netlib_eventfd_read(eventfd_);
+	if (ret != 0)
+	{
+		LogError("EpollServer::eventfd read error\n");
+		return;
+	}
+
+	while(true){
+		message_queue* mq = MessageQueue::getInstance().MQ2C_Pop();
+		if (mq == nullptr)
+			break;
+		if (mq->type == FD_TYPE_CLIENT){
+			auto channel = GetChannel(mq->sockfd);
+
+			if (channel == nullptr)
+			{
+				delete mq;
+				mq = nullptr;
+				LogWarning("EpollServer::OnEventfd channel null\n");
+				continue;
+			}
+
+			channel->push_back(mq);
+
+			//update channel
+			int events = EV_READ;
+			if (!channel->empty())
+			{
+				events |= EV_WRITE;
+			}
+			UpdateEvent(mq->sockfd, events, channel);
+		}
+		/*
+		else if (mq->type == MQ_TYPE_BROADCAST)
+		{
+			Broadcast* broadcast = mq->broad;
+			list<uint32_t>& uniqids = broadcast->uniqids;
+			while(!uniqids.empty())
+			{
+				uint32_t uniqid = uniqids.front();
+				uniqids.pop_front();
+				//same with MQ_TYPE_PACK
+				int fd = GetFdFromUniqid(uniqid);
+				Channel* channel = GetChannel(fd);
+
+				if (channel == NULL)
+				{
+					LogWarning("EpollServer::OnEventfd channel null\n");
+					continue;
+				}
+
+				channel->OutBuffer().Write(broadcast->pack->GetBuffer(), broadcast->pack->GetTotalLength());
+
+				//update channel
+				int events = EV_READ;
+				if (channel->OutBuffer().GetWriteOffset() > 0)
+				{
+					events |= EV_WRITE;
+				}
+				UpdateEvent(fd, events, channel);
+			}
+
+			delete broadcast->pack;
+			broadcast->pack = NULL;
+			delete broadcast;
+			broadcast = NULL;
+			delete mq;
+			mq = NULL;
+
+		}
+		else if (mq->type == MQ_TYPE_TIMER)
+		{
+			struct ev_timer* timeout_watcher = (struct ev_timer*) malloc(sizeof(struct ev_timer));
+			
+			TimerStruct* timer_struct = mq->timer;
+
+			Timer* timer = new Timer(timer_struct->timerid, timer_struct->repeat_sec, timeout_watcher);
+			timer_map_.insert(pair<uint32_t, Timer*>(1, timer));
+
+			ev_timer_init(timeout_watcher, timeout_cb, timer_struct->delay, timer_struct->repeat_sec);
+			ev_timer_start(loop_, timeout_watcher);
+			//LogWarning("EpollServer::OnEventfd timer: %d,%d,%d\n", timer_struct->timerid, timer_struct->delay, timer_struct->repeat_sec);
+		}
+		else if (mq->type == MQ_TYPE_CONNECT)
+		{
+			Connector* connector = GetUserfulConnector();
+			if (connector == NULL)
+			{
+				//LOG_ERROR("EpollServer::OnEventfd connector null");
+				delete mq->pack;
+				delete mq;
+				continue;
+			}
+
+			int fd = connector->Fd();
+
+			connector->OutBuffer().Write(mq->pack->GetBuffer(), mq->pack->GetTotalLength());
+
+			delete mq->pack;
+			mq->pack = NULL;
+			delete mq;
+			mq = NULL;
+
+			//update channel
+			int events = EV_READ;
+			if (connector->OutBuffer().GetWriteOffset() > 0)
+			{
+				events |= EV_WRITE;  //then, 
+			}
+			
+			UpdateEvent(fd, events, connector);
+		}
+		*/
+		else
+		{
+			LogError("EpollServer::OnEventfd type error:%d\n",mq->type);
+			delete mq;
+			continue;
+		}
+	}
 }
 
 int Dispatcher::AddEvent(struct ev_io* ev, int fd, short events){
@@ -120,14 +315,14 @@ int Dispatcher::AddEvent(struct ev_io* ev, int fd, short events){
 
 	return 0;
 }
-/*
-int Dispatcher::UpdateEvent(int fd, short events, Channel* channel)
+
+int Dispatcher::UpdateEvent(int fd, short events, SP_Channel channel)
 {	
 	//LogDebug("UpdateEvent:%d,%d\n", fd, events);
 
 	struct ev_io* io_watcher = channel->GetIoWatcher();
 
-	if (io_watcher == NULL)
+	if (io_watcher == nullptr)
 	{
 		LogError("UpdateEvent error: io_watcher null\n");
 		return -1;
@@ -139,11 +334,11 @@ int Dispatcher::UpdateEvent(int fd, short events, Channel* channel)
 
 	return 0;
 }
-*/
+
 void Dispatcher::RemoveEvent(int fd){
 	LogDebug("RemoveEvent: %d\n",fd);
 
-	Channel* channel = this->GetChannel(fd);
+	auto channel = this->GetChannel(fd);
 	if(channel == nullptr){
 		return;
 	}
@@ -157,7 +352,7 @@ void Dispatcher::RemoveEvent(int fd){
 }
 
 
-Channel* Dispatcher::GetChannel(int fd)
+SP_Channel Dispatcher::GetChannel(int fd)
 {
 	auto iter = channel_map_.find(fd);
 	if (iter == channel_map_.end()){
@@ -178,8 +373,10 @@ void Dispatcher::AddChannel(struct ev_io* io_watcher, int fd)
 		//Channel* channel = iter->second; //TODO, modify or other
 	}
 	else{
-		Channel* channel = new Channel(fd, io_watcher);
-		channel_map_.insert(iter, make_pair(fd, channel));
+		//Channel* channel = new Channel(fd, io_watcher);
+		//channel_map_.insert(iter, make_pair(fd, channel));
+		SP_Channel channel(new Channel(fd, io_watcher));
+		channel_map_[fd] = channel;
 	}
 }
 
@@ -187,18 +384,29 @@ void Dispatcher::OnFdClosed(int fd){
 	LogDebug("OnFdClosed %d\n", fd);
 	ChannelMap::iterator iter = channel_map_.find(fd);
 	if (iter != channel_map_.end()){
-		Channel* channel = iter->second;
+		//Channel* channel = iter->second;
 		channel_map_.erase(fd);
 
-		delete channel;
-		channel = nullptr;
+		//delete channel;
+		//channel = nullptr;
 	}
 
 		//let py to remove this socket
-		//uint32_t uniqid = GetUniqidFromFd(fd);
 		//MessageQueue::getSingleton().MQ2S_Push_Close(uniqid);
+}
 
-		//RemoveFd2Uniqid(fd);
+void Dispatcher::InitEventFd(){
+	//eventfd wakeup socket thread
+	eventfd_ = netlib_eventfd();
+	if (eventfd_ < 0)
+	{
+		LogError("netlib_socket error:%d\n",errno);
+		exit(EXIT_FAILURE);
+	}
+
+	struct ev_io* efd_watcher = (struct ev_io*) malloc(sizeof(struct ev_io));
+	ev_init(efd_watcher, eventfd_cb);
+	AddEvent(efd_watcher, eventfd_, EV_READ);
 }
 
 void Dispatcher::accept_cb(struct ev_loop* loop, struct ev_io* watcher, int revents){
@@ -225,8 +433,22 @@ void Dispatcher::r_w_cb(struct ev_loop* loop, struct ev_io* watcher, int revents
 		Dispatcher::getInstance().OnRead(fd);
 	}
 	if (EV_WRITE & revents){
-		//Dispatcher::getInstance().OnWrite(fd, FD_TYPE_SERVER);
+		Dispatcher::getInstance().OnWrite(fd);
 	}
+}
+
+void Dispatcher::eventfd_cb(struct ev_loop* loop, struct ev_io* watcher, int revents)
+{
+	int fd = watcher->fd;
+	LogDebug("eventfd_cb %d,%d\n", fd, revents);
+	if (EV_ERROR & revents)
+	{
+		LogError("error event in eventfd\n");
+		return;
+	}
+
+	Dispatcher::getInstance().OnEventfd(fd);
+	
 }
 
 }

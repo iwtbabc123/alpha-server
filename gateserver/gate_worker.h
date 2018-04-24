@@ -17,10 +17,11 @@ public:
 	~GateWorker();
 
 public:
-	void Start();
+	void OnServer(struct message_queue* mq);
+	//void Start();
 
-private:
-	struct message_queue* MessageDispatch();
+//private:
+	//struct message_queue* MessageDispatch();
 
 private:
 	PyObject* pModule_;

@@ -4,10 +4,12 @@
 #include <ev.h>
 #include <map>
 #include "util.h"
+#include "channel.h"
 
 namespace alpha{
 
-class Channel;
+typedef std::shared_ptr<Channel> SP_Channel;
+
 class Dispatcher{
 public:
     static Dispatcher& getInstance(){
@@ -19,10 +21,16 @@ public:
 
     void OnAccept(int fd);
     void OnRead(int fd);
+    void OnWrite(int fd);
+    void OnEventfd(int fd);
+
+public:
+    int Eventfd(){return eventfd_;}
 
 public:
     static void accept_cb(struct ev_loop* loop, struct ev_io* watcher, int revents);
     static void r_w_cb(struct ev_loop* loop, struct ev_io* watcher, int revents);
+    static void eventfd_cb(struct ev_loop* loop, struct ev_io* watcher, int revents);
 
 private:
     Dispatcher();
@@ -32,21 +40,25 @@ private:
 private:
 	int AddEvent(struct ev_io* io_watcher, int fd, short events);
 
-	//int UpdateEvent(int fd, short events, Channel* channel);
+	int UpdateEvent(int fd, short events, SP_Channel channel);
 
 	void RemoveEvent(int fd);
 
-    Channel* GetChannel(int fd);
+    SP_Channel GetChannel(int fd);
 
     void AddChannel(ev_io* io_watcher, int fd);
 
     void OnFdClosed(int fd);  //RemoveChannel
 
 private:
+    void InitEventFd();
+
+private:
     struct ev_loop* loop_;
     bool running_;
-    
-    typedef std::map<int, Channel*> ChannelMap;
+
+    int eventfd_;
+    typedef std::map<int, SP_Channel> ChannelMap;
     ChannelMap channel_map_;
 
 };
