@@ -5,7 +5,7 @@
 #include "thread.h"
 #include "gate_worker.h"
 
-GateServer::GateServer(){
+GateServer::GateServer():worker_uptr_(nullptr){
 }
 
 GateServer::~GateServer(){
@@ -17,17 +17,17 @@ void GateServer::Start(const char* server_name, const char* config_file){
 	//LoadConfig(server_name, config_file);
 
 	void* params = nullptr;
-	auto func_socket = std::bind(&GateServer::thread_socket, this, std::placeholders::_1);
+	auto socket_func = std::bind(&GateServer::thread_socket, this, std::placeholders::_1);
 
-	std::unique_ptr<Thread> uni_ptr1(new Thread(func_socket));
-	uni_ptr1->start(params);
+	std::unique_ptr<Thread> socket_uptr(new Thread(socket_func));
+	socket_uptr->start(params);
 
-	auto func_worker = std::bind(&GateServer::thread_worker, this, std::placeholders::_1);
+	auto worker_func = std::bind(&GateServer::thread_worker, this, std::placeholders::_1);
 
-	std::unique_ptr<Thread> uni_ptr2(new Thread(func_worker));
-	uni_ptr2->start(params);
+	std::unique_ptr<Thread> worker_uptr(new Thread(worker_func));
+	worker_uptr->start(params);
 
-	uni_ptr2->join();
+	worker_uptr->join();
 
 }
 
@@ -41,8 +41,11 @@ void GateServer::thread_socket(void* params){
 void GateServer::thread_worker(void* params){
 	printf("new thread_worker %u\n", (unsigned int)pthread_self());
 
-	//GateWorker::getInstance().Start();
-	auto deal_mq_func = std::bind(&GateWorker::OnServer, &GateWorker::getInstance(), std::placeholders::_1);
-	Worker::getInstance().Start(deal_mq_func);
+	worker_uptr_.reset(new GateWorker());
+
+	auto deal_func = std::bind(&GateWorker::OnServer, worker_uptr_.get(), std::placeholders::_1);
+	Worker::getInstance().Start(deal_func);
+
+	printf("new thread_worker end\n");
 
 }
