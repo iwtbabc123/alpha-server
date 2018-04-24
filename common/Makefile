@@ -2,33 +2,34 @@
 
 CC = g++
 AR = ar cru
-CCFLAGS = -Wall -g -fPIC
+CCFLAGS = -g -Wall -fPIC
 SOFLAGS = -shared
 
 LDFLAGS = -L/usr/local/lib
 
-ALPHA_INCL =
-ALPHA_LIB = -lev
+ALPHA_INCL = -std=c++11
+ALPHA_LIB = -lpthread -lev
 
 CCFLAGS += $(ALPHA_INCL)
 LDFLAGS += $(ALPHA_LIB)
 
-#-lprotobuf
-USER_LDFLAGS = 
-
-LIBOBJS = thread.o
+SOURCE  := $(wildcard *.c) $(wildcard *.cpp)
+OBJS    := $(patsubst %.c,%.o,$(patsubst %.cpp,%.o,$(SOURCE)))
+  
+.PHONY : debug release clean rebuild cleantmp
 
 TARGET = libcommon.so libcommon.a
 
-all:  $(TARGET)
+all:  $(TARGET) cleantmp
 
-libcommon.so: $(LIBOBJS)
-	$(CC) $(SOFLAGS) $(LDFLAGS) $(USER_LDFLAGS) $^ -o $@
-libcommon.a: $(LIBOBJS)
+libcommon.so: $(OBJS)
+	$(CC) $(SOFLAGS) $(LDFLAGS) $^ -o $@
+libcommon.a: $(OBJS)
 	$(AR) $@ $^
-
 clean:
 	rm -f *.o *.so *.a
+cleantmp:
+	rm -f *.o
 	
 # make rule
 %.o : %.c

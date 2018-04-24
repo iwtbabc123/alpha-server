@@ -21,7 +21,7 @@ public:
 	void SetIoWatcher(struct ev_io* io_watcher){io_watcher_ = io_watcher;}
 
 	bool empty(){return mq_.empty();}
-	bool push_back(message_queue* mq){mq_.push_back(mq);}
+	void push_back(message_queue* mq){mq_.push_back(mq);}
 	struct message_queue* pop_front(){
 		if (mq_.empty()){
 			return nullptr;

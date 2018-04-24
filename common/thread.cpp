@@ -44,6 +44,7 @@ void* Thread::startThread(void* params){
 	Thread_Data* data = static_cast<Thread_Data*>(params);
 
 	data->func_(data->params_);
+	return (void*)0;
 }
 
 }
