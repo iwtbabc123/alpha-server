@@ -89,7 +89,7 @@ GateWorker::~GateWorker(){
 	Py_Finalize();
 }
 
-void GateWorker::OnServer(MessageData* q){
+void GateWorker::OnServer(SP_MessageData q){
 	pResult_ = PyObject_CallMethod(pModule_, "OnServer", "iis#", q->Sockfd(), q->Type(), q->Buffer(),q->Size());
 	if (pResult_ != NULL){
 		char* ret;

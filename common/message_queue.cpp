@@ -19,17 +19,15 @@ MessageQueue::~MessageQueue(){
 	pthread_cond_destroy(&mq2s_cond_);
 
 	if (!mq2s_.empty()){
-		for(auto iter = mq2s_.begin(); iter != mq2s_.end(); ++iter){
-			MessageData* mq = *iter;
-			delete mq;
+		for(auto itr = mq2s_.begin(); itr != mq2s_.end();){
+			mq2s_.erase(itr++);
 		}
 	}
 
 	if (!mq2c_.empty())
 	{
-		for(auto iter2 = mq2c_.begin(); iter2 != mq2c_.end(); ++iter2){
-			MessageData* mq2 = *iter2;
-			delete mq2;
+		for(auto itr2 = mq2c_.begin(); itr2 != mq2c_.end();){
+			mq2c_.erase(itr2++);
 		}
 	}
 }
@@ -37,7 +35,7 @@ MessageQueue::~MessageQueue(){
 void MessageQueue::MQ2S_Push(int fd, int type, const char* buffer, int size){
 	MQ2S_Lock();
 
-	MessageData* queue = new MessageData(fd,type, buffer, size);
+	SP_MessageData queue(new MessageData(fd,type, buffer, size));
 	mq2s_.push_back(queue);
 
 	MQ2S_Signal();
@@ -45,7 +43,7 @@ void MessageQueue::MQ2S_Push(int fd, int type, const char* buffer, int size){
 	MQ2S_Unlock();
 }
 
-	MessageData* MessageQueue::MQ2S_Pop(){
+	SP_MessageData MessageQueue::MQ2S_Pop(){
 
 	MQ2S_Lock();
 	LogDebug("mq2s_pop before");
@@ -54,7 +52,7 @@ void MessageQueue::MQ2S_Push(int fd, int type, const char* buffer, int size){
 	}
 	LogDebug("mq2s_pop enter");
 
-	MessageData* queue = mq2s_.front();
+	SP_MessageData queue = mq2s_.front();
 	mq2s_.pop_front();
 
 	MQ2S_Unlock();
@@ -70,7 +68,7 @@ void MessageQueue::MQ2C_Push(int fd, int type, char* data, int size){
 	char* buffer = (char*)malloc(sizeof(char) * size);
 	memcpy(buffer, data, size);
 
-	MessageData* queue = new MessageData(fd, type, buffer, size);
+	SP_MessageData queue(new MessageData(fd, type, buffer, size));
 	mq2c_.push_back(queue);
 
 	int ret = netlib_eventfd_write(Dispatcher::getInstance().Eventfd());
@@ -82,7 +80,7 @@ void MessageQueue::MQ2C_Push(int fd, int type, char* data, int size){
 	MQ2C_Unlock();
 }
 
-	MessageData* MessageQueue::MQ2C_Pop(){
+	SP_MessageData MessageQueue::MQ2C_Pop(){
 	LogDebug("MessageQueue::mq2c_Pop\n");
 	MQ2C_Lock();
 
@@ -91,14 +89,14 @@ void MessageQueue::MQ2C_Push(int fd, int type, char* data, int size){
 		MQ2C_Unlock();  //forgot it
 		return nullptr;
 	}
-	MessageData* queue = mq2c_.front();
+	SP_MessageData queue = mq2c_.front();
 	mq2c_.pop_front();
 
 	MQ2C_Unlock();
 	return queue;
 }
 
-bool MessageQueue::_Push_With_Notify(MessageData* queue)
+bool MessageQueue::_Push_With_Notify(SP_MessageData queue)
 {
 	bool notify = false;
 	if (mq2s_.empty())

@@ -4,7 +4,6 @@
 #ifndef __ALPHA_WORKER_H__
 #define __ALPHA_WORKER_H__
 
-#include "message_data.h"
 #include "message_queue.h"
 
 namespace alpha{
@@ -19,11 +18,11 @@ public:
 	Worker();
 	~Worker();
 
-typedef std::function<void (MessageData*)> WorkerFunc;
+typedef std::function<void (SP_MessageData)> WorkerFunc;
 
 public:
 	void Start(WorkerFunc func);
-	MessageData* MessageDispatch();
+	SP_MessageData MessageDispatch();
 private:
 
 

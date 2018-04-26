@@ -12,19 +12,15 @@ Worker::~Worker(){
 }
 
 void Worker::Start(WorkerFunc func){
-	MessageData* q = nullptr;
 	while(1){
 		LogDebug("Worker:Start start=================>\n");
-		q = MessageDispatch();
+		SP_MessageData q = MessageDispatch();
 		func(q);
 		LogDebug("Worker:Start end===================<\n");
-		delete q;
-		q = nullptr;
-
 	}
 }
 
-	MessageData* Worker::MessageDispatch(){
+SP_MessageData Worker::MessageDispatch(){
 	return MessageQueue::getInstance().MQ2S_Pop();
 }
 

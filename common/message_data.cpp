@@ -10,6 +10,7 @@ MessageData::MessageData(int sockfd, int type, const char* buffer, int size)
 MessageData::~MessageData(){
 	if (buffer_ != nullptr){
 		free((char*)buffer_);
+		buffer_ = nullptr;
 	}
 }
 

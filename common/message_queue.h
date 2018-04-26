@@ -11,6 +11,8 @@
 
 namespace alpha{
 
+typedef std::shared_ptr<MessageData> SP_MessageData;
+
 class MessageQueue{
 
 public:
@@ -25,14 +27,14 @@ public:
 
 	void MQ2S_Push(int fd, int type, const char* buffer, int size);
 
-	MessageData* MQ2S_Pop();
+	SP_MessageData MQ2S_Pop();
 
 public:
 	void MQ2C_Push(int fd, int type, char* data, int size);
-	MessageData* MQ2C_Pop();
+	SP_MessageData MQ2C_Pop();
 
 private:
-	bool _Push_With_Notify(MessageData* queue);
+	bool _Push_With_Notify(SP_MessageData queue);
 
 	void MQ2S_Lock();
 
@@ -50,8 +52,8 @@ private:
 
 
 private:
-	std::list<MessageData*> mq2s_;
-	std::list<MessageData*> mq2c_;
+	std::list<SP_MessageData> mq2s_;
+	std::list<SP_MessageData> mq2c_;
 
 	pthread_mutex_t mq2s_lock_;
 	pthread_cond_t mq2s_cond_;

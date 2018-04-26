@@ -1,5 +1,4 @@
 #include "dispatcher.h"
-#include "message_data.h"
 #include "message_queue.h"
 #include "net_util.h"
 #include "logger.h"
@@ -144,7 +143,7 @@ void Dispatcher::OnWrite(int fd){
 
 	while(!channel->empty())
 	{
-		MessageData* mq = channel->pop_front();
+		auto mq = channel->pop_front();
 
 		LogDebug("EpollServer::OnWrite send_len %d\n", mq->Size());
 
@@ -190,7 +189,7 @@ void Dispatcher::OnEventfd(int efd)
 	}
 
 	while(true){
-		MessageData* mq = MessageQueue::getInstance().MQ2C_Pop();
+		auto mq = MessageQueue::getInstance().MQ2C_Pop();
 		if (mq == nullptr)
 			break;
 		if (mq->Type() == FD_TYPE_CLIENT){
@@ -198,8 +197,6 @@ void Dispatcher::OnEventfd(int efd)
 
 			if (channel == nullptr)
 			{
-				delete mq;
-				mq = nullptr;
 				LogWarning("EpollServer::OnEventfd channel null\n");
 				continue;
 			}
@@ -298,7 +295,6 @@ void Dispatcher::OnEventfd(int efd)
 		else
 		{
 			LogError("EpollServer::OnEventfd type error:%d\n",mq->Type());
-			delete mq;
 			continue;
 		}
 	}

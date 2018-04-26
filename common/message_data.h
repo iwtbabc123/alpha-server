@@ -1,5 +1,10 @@
+/*
+*一个MessageData，仅代表一次接收的数据流，不代表一个完整的包，需要手动解包
+*/
 #ifndef __ALPHA_MESSAGE_DATA_H__
 #define __ALPHA_MESSAGE_DATA_H__
+
+#include "util.h"
 
 namespace alpha{
 

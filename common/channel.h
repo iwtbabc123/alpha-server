@@ -7,7 +7,7 @@
 #include <ev.h>
 #include <list>
 #include "util.h"
-#include "message_data.h"
+#include "message_queue.h"
 
 namespace alpha{
 
@@ -22,12 +22,12 @@ public:
 	void SetIoWatcher(struct ev_io* io_watcher){io_watcher_ = io_watcher;}
 
 	bool empty(){return mq_.empty();}
-	void push_back(MessageData* mq){mq_.push_back(mq);}
-	MessageData* pop_front(){
+	void push_back(SP_MessageData mq){mq_.push_back(mq);}
+	SP_MessageData pop_front(){
 		if (mq_.empty()){
 			return nullptr;
 		}
-		MessageData* queue = mq_.front();
+		SP_MessageData queue = mq_.front();
 		mq_.pop_front();
 		return queue;
 	}
@@ -38,7 +38,7 @@ protected:
 private:
 	struct ev_io* io_watcher_;
 
-	std::list<MessageData*> mq_;
+	std::list<SP_MessageData> mq_;
 };
 
 }
