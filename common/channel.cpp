@@ -18,7 +18,7 @@ Channel::~Channel(){
 	}
 
 	for(auto itr = mq_.begin(); itr != mq_.end(); itr++){
-		message_queue* mq = * itr;
+		MessageData* mq = * itr;
 		delete mq;
 	}
 }

@@ -2,7 +2,7 @@
 #define __GATE_WORKER_H__
 
 #include <Python.h>
-#include "message_queue.h"
+#include "message_data.h"
 
 using namespace alpha;
 
@@ -12,7 +12,7 @@ public:
 	~GateWorker();
 
 public:
-	void OnServer(struct message_queue* mq);
+	void OnServer(MessageData* mq);
 
 private:
 	PyObject* pModule_;

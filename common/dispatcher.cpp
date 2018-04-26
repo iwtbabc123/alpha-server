@@ -1,4 +1,5 @@
 #include "dispatcher.h"
+#include "message_data.h"
 #include "message_queue.h"
 #include "net_util.h"
 #include "logger.h"
@@ -66,8 +67,8 @@ void Dispatcher::OnAccept(int fd){
 
 	netlib_setnonblocking(conn_fd);
 
-	struct ev_io* conn_ev = (struct ev_io*) malloc(sizeof(struct ev_io));  //TODO, delete ptr
-	if (conn_ev == NULL){
+	struct ev_io* conn_ev = (struct ev_io*) malloc(sizeof(struct ev_io));
+	if (conn_ev == nullptr){
 		LogError("malloc error in accept_cb\n");
 		return;
 	}
@@ -85,11 +86,6 @@ void Dispatcher::OnAccept(int fd){
 void Dispatcher::OnRead(int fd){
 	LogDebug("Dispatcher::OnRead:%d\n", fd);
 
-	//LogDebug("EpollServer::OnRead: offset %d\n", in_buf.GetWriteOffset());
-
-	//LogDebug("netlib_recv before%d\n", (int)strlen(in_buf.GetBuffer()));
-
-	//char* buffer = (char*)malloc(READ_BUF_SIZE);
 	char buffer[READ_BUF_SIZE] = {0};
 
 	int bytes = netlib_recv(fd, buffer, READ_BUF_SIZE);
@@ -97,22 +93,21 @@ void Dispatcher::OnRead(int fd){
 		//remote close fd actively
 		RemoveEvent(fd);
 		OnFdClosed(fd);
-		LogInfo("remote close fd actively: %d\n", fd);
+		LogInfo("Dispatcher::OnRead remote close fd: %d\n", fd);
 		return;
 	}
 	else if(bytes < 0){  //error
-		LogInfo("OnRead fd error\n");
 		RemoveEvent(fd);
 		OnFdClosed(fd);
+		LogInfo("Dispatcher::OnRead fd error\n");
 		return;
 	}
 
-	//LogInfo("Dispatcher::recv:%d bytes, %s \n", bytes, buffer);
-	char* tmp = (char*)malloc(sizeof(char) * bytes);
-	memcpy(tmp, buffer, bytes);
+	char* socket_data = (char*)malloc(sizeof(char) * bytes);
+	memcpy(socket_data, buffer, bytes);
 	//std::string str_buf(buffer);
-	LogInfo("Dispatcher::recv:%d bytes\n", bytes);
-	MessageQueue::getInstance().MQ2S_Push(fd, FD_TYPE_READ, tmp, bytes);
+	LogInfo("Dispatcher::OnRead %d bytes\n", bytes);
+	MessageQueue::getInstance().MQ2S_Push(fd, FD_TYPE_READ, socket_data, bytes);
 
 }
 
@@ -149,14 +144,14 @@ void Dispatcher::OnWrite(int fd){
 
 	while(!channel->empty())
 	{
-		struct message_queue* mq = channel->pop_front();
+		MessageData* mq = channel->pop_front();
 
-		LogDebug("EpollServer::OnWrite send_len %d\n", mq->size);
+		LogDebug("EpollServer::OnWrite send_len %d\n", mq->Size());
 
-		char* tmp = (char*)malloc(sizeof(char) * mq->size);
-		memcpy(tmp, mq->buffer, mq->size);
+		char* tmp = (char*)malloc(sizeof(char) * mq->Size());
+		memcpy(tmp, mq->Buffer(), mq->Size());
 		//TODO,只发送一部分mq，剩余的尚未处理
-		int ret = netlib_send(fd, tmp, mq->size);
+		int ret = netlib_send(fd, tmp, mq->Size());
 		if (ret == -1)  //TODO,发送不成功要重新发送
 		{
 			LogWarning("netlib_send -1\n");
@@ -195,11 +190,11 @@ void Dispatcher::OnEventfd(int efd)
 	}
 
 	while(true){
-		message_queue* mq = MessageQueue::getInstance().MQ2C_Pop();
+		MessageData* mq = MessageQueue::getInstance().MQ2C_Pop();
 		if (mq == nullptr)
 			break;
-		if (mq->type == FD_TYPE_CLIENT){
-			auto channel = GetChannel(mq->sockfd);
+		if (mq->Type() == FD_TYPE_CLIENT){
+			auto channel = GetChannel(mq->Sockfd());
 
 			if (channel == nullptr)
 			{
@@ -217,7 +212,7 @@ void Dispatcher::OnEventfd(int efd)
 			{
 				events |= EV_WRITE;
 			}
-			UpdateEvent(mq->sockfd, events, channel);
+			UpdateEvent(mq->Sockfd(), events, channel);
 		}
 		/*
 		else if (mq->type == MQ_TYPE_BROADCAST)
@@ -302,7 +297,7 @@ void Dispatcher::OnEventfd(int efd)
 		*/
 		else
 		{
-			LogError("EpollServer::OnEventfd type error:%d\n",mq->type);
+			LogError("EpollServer::OnEventfd type error:%d\n",mq->Type());
 			delete mq;
 			continue;
 		}
@@ -367,14 +362,9 @@ void Dispatcher::AddChannel(struct ev_io* io_watcher, int fd)
 {
 	auto iter = channel_map_.lower_bound(fd);
 	if (iter != channel_map_.end() && iter->first == fd){
-		//Channel* p = iter->second;
 		LogWarning("AddChannel error, channel exists\n");
-
-		//Channel* channel = iter->second; //TODO, modify or other
 	}
 	else{
-		//Channel* channel = new Channel(fd, io_watcher);
-		//channel_map_.insert(iter, make_pair(fd, channel));
 		SP_Channel channel(new Channel(fd, io_watcher));
 		channel_map_[fd] = channel;
 	}

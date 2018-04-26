@@ -5,6 +5,7 @@
 #include "config_reader.h"
 #include "cjson_helper.h"
 #include "message_queue.h"
+#include "message_data.h"
 
 namespace alpha{
 
@@ -17,7 +18,7 @@ public:
 
 	virtual void LoadConfig(const char* server_name, const char* config_file);
 
-	struct message_queue* MessageDispatch();
+	MessageData* MessageDispatch();
 
 private:
 	std::unique_ptr<JsonHelper> json_helper_;

@@ -20,7 +20,7 @@ MessageQueue::~MessageQueue(){
 
 	if (!mq2s_.empty()){
 		for(auto iter = mq2s_.begin(); iter != mq2s_.end(); ++iter){
-			message_queue* mq = *iter;
+			MessageData* mq = *iter;
 			delete mq;
 		}
 	}
@@ -28,7 +28,7 @@ MessageQueue::~MessageQueue(){
 	if (!mq2c_.empty())
 	{
 		for(auto iter2 = mq2c_.begin(); iter2 != mq2c_.end(); ++iter2){
-			message_queue* mq2 = *iter2;
+			MessageData* mq2 = *iter2;
 			delete mq2;
 		}
 	}
@@ -37,13 +37,7 @@ MessageQueue::~MessageQueue(){
 void MessageQueue::MQ2S_Push(int fd, int type, const char* buffer, int size){
 	MQ2S_Lock();
 
-	message_queue* queue = new message_queue;
-	queue->sockfd = fd;
-	queue->type = type;
-	//std::string s(buffer);
-	queue->buffer = buffer;
-	queue->size = size;
-	
+	MessageData* queue = new MessageData(fd,type, buffer, size);
 	mq2s_.push_back(queue);
 
 	MQ2S_Signal();
@@ -51,7 +45,7 @@ void MessageQueue::MQ2S_Push(int fd, int type, const char* buffer, int size){
 	MQ2S_Unlock();
 }
 
-struct message_queue* MessageQueue::MQ2S_Pop(){
+	MessageData* MessageQueue::MQ2S_Pop(){
 
 	MQ2S_Lock();
 	LogDebug("mq2s_pop before");
@@ -60,7 +54,7 @@ struct message_queue* MessageQueue::MQ2S_Pop(){
 	}
 	LogDebug("mq2s_pop enter");
 
-	struct message_queue* queue = mq2s_.front();
+	MessageData* queue = mq2s_.front();
 	mq2s_.pop_front();
 
 	MQ2S_Unlock();
@@ -72,14 +66,11 @@ void MessageQueue::MQ2C_Push(int fd, int type, char* data, int size){
 
 	LogDebug("MessageQueue::mq2c_Push:%d,%d,%s,%d\n",fd, type ,data, size);
 	MQ2C_Lock();
+	
+	char* buffer = (char*)malloc(sizeof(char) * size);
+	memcpy(buffer, data, size);
 
-	message_queue* queue = new message_queue;
-	queue->sockfd = fd;
-	queue->type = type;
-	char* tmp = (char*)malloc(sizeof(char) * size);
-	memcpy(tmp, data, size);
-	queue->buffer = tmp;
-	queue->size = size;
+	MessageData* queue = new MessageData(fd, type, buffer, size);
 	mq2c_.push_back(queue);
 
 	int ret = netlib_eventfd_write(Dispatcher::getInstance().Eventfd());
@@ -91,7 +82,7 @@ void MessageQueue::MQ2C_Push(int fd, int type, char* data, int size){
 	MQ2C_Unlock();
 }
 
-struct message_queue* MessageQueue::MQ2C_Pop(){
+	MessageData* MessageQueue::MQ2C_Pop(){
 	LogDebug("MessageQueue::mq2c_Pop\n");
 	MQ2C_Lock();
 
@@ -100,14 +91,14 @@ struct message_queue* MessageQueue::MQ2C_Pop(){
 		MQ2C_Unlock();  //forgot it
 		return nullptr;
 	}
-	message_queue* queue = mq2c_.front();
+	MessageData* queue = mq2c_.front();
 	mq2c_.pop_front();
 
 	MQ2C_Unlock();
 	return queue;
 }
 
-bool MessageQueue::_Push_With_Notify(message_queue* queue)
+bool MessageQueue::_Push_With_Notify(MessageData* queue)
 {
 	bool notify = false;
 	if (mq2s_.empty())
