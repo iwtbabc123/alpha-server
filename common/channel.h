@@ -1,46 +1,43 @@
-#ifndef __PLUTO_CHANNEL_H__
-#define __PLUTO_CHANNEL_H__
+/*
+*封装sockfd
+*/
+#ifndef __ALPHA_CHANNEL_H__
+#define __ALPHA_CHANNEL_H__
 
-#include <iostream>
-#include <map>
-#include <list>
 #include <ev.h>
-
 #include "util.h"
-#include "buffer.h"
+#include "message_queue.h"  //TODO,把struct抽出来
 
-namespace alpha
-{
+namespace alpha{
 
-class Package;
-class EpollServer;
+class Channel{
+public:
+	Channel(int fd, struct ev_io* io_watcher);
+	virtual ~Channel();
 
-class Channel
-{
-	public:
-		Channel(int fd, struct ev_io* io_watcher, EFDTYPE fdtype);
-		virtual ~Channel();
+	int Fd(){return fd_;}
 
-		Package* ReadPackage();
+	struct ev_io* GetIoWatcher(){return io_watcher_;}
+	void SetIoWatcher(struct ev_io* io_watcher){io_watcher_ = io_watcher;}
 
-		int Fd(){return fd_;}
+	bool empty(){return mq_.empty();}
+	void push_back(message_queue* mq){mq_.push_back(mq);}
+	struct message_queue* pop_front(){
+		if (mq_.empty()){
+			return nullptr;
+		}
+		struct message_queue* queue = mq_.front();
+		mq_.pop_front();
+		return queue;
+	}
 
-		EFDTYPE GetFdType() {return fdtype_;}
+protected:
+	int fd_;
+	//int fd_type_;
+private:
+	struct ev_io* io_watcher_;
 
-		struct ev_io* GetIoWatcher(){return io_watcher_;}
-		void SetIoWatcher(struct ev_io* io_watcher){io_watcher_ = io_watcher;}
-
-		Buffer& InBuffer() {return in_buf_;}
-		Buffer& OutBuffer() {return out_buf_;}
-
-	protected:
-		int fd_;
-	private:
-		struct ev_io* io_watcher_;
-		EFDTYPE fdtype_;
-
-		Buffer in_buf_;
-		Buffer out_buf_;
+	std::list<message_queue*> mq_;
 };
 
 }

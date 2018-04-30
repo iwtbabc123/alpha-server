@@ -8,19 +8,11 @@ using namespace alpha;
 
 class GateWorker{
 public:
-	static GateWorker& getInstance(){
-		static GateWorker instance;
-		return instance;
-	}
-
 	GateWorker();
 	~GateWorker();
 
 public:
-	void Start();
-
-private:
-	struct message_queue* MessageDispatch();
+	void OnServer(struct message_queue* mq);
 
 private:
 	PyObject* pModule_;

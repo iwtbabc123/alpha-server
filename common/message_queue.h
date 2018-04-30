@@ -1,3 +1,6 @@
+/*
+*消息队列
+*/
 #ifndef __ALPHA_MQ_H__
 #define __ALPHA_MQ_H__
 
@@ -6,14 +9,13 @@
 #include "util.h"
 
 namespace alpha{
-//TODO,是否可以工作线程处理socket
 
 struct message_queue{
 	int sockfd;
 	int type;
 	const char* buffer;
+	int size;
 };
-
 
 class MessageQueue{
 
@@ -27,9 +29,13 @@ public:
 	MessageQueue();
 	~MessageQueue();
 
-	void MQ2S_Push(int fd, int type, const char* buffer);
+	void MQ2S_Push(int fd, int type, const char* buffer, int size);
 
 	struct message_queue* MQ2S_Pop();
+
+public:
+	void MQ2C_Push(int fd, int type, char* data, int size);
+	struct message_queue* MQ2C_Pop();
 
 private:
 	bool _Push_With_Notify(message_queue* queue);
