@@ -10,6 +10,7 @@ PACKAGE_HEAD_LENGTH = struct.calcsize(PACKAGE_HEAD)
 class Buffer():
     def __init__(self):
         self.buff = b''
+        self.logger = logger.get_logger("Buffer")
 
     def parse_data(self, rpc_service, data):
         self.buff += data
@@ -22,8 +23,8 @@ class Buffer():
             if buff_length < package_length:
                 break
             s_descriptor = rpc_service.GetDescriptor()
-            method = s_descriptor.methods.get(index, None)
-            if method:
+            if index < len(s_descriptor.methods):
+                method = s_descriptor.methods[index]
                 request = rpc_service.GetRequestClass(method)()
                 if request:
                     try:
@@ -67,18 +68,23 @@ class RpcChannel(service.RpcChannel):
             data = bytes(data, encoding = "utf8")
         elif data_type != bytes:
             self.logger.error('RpcChannel.input_data: expect bytes but got %s'%type(data))
-            return
+            return False
         rpc_service = self.rpc_service
-        rpc_calls = self.buff.parse_data(rpc_service, data)
-        rpc_controller = self.rpc_controller
-        for i in range(0, len(rpc_calls), 2):
-            try:
-                method = rpc_calls[i]
-                request = rpc_calls[i+1]
-                rpc_service.CallMethod(method, rpc_controller, request, None)
-            except Exception as e:
-                self.logger.error("RpcChannel.input_data, call rpc method failed!")
-            #self.logger.log_last_except()
+        try:
+            rpc_calls = self.buff.parse_data(rpc_service, data)
+        except Exception as e:
+            self.logger.error("RpcChannel.input_data, phase rpc method failed! msg:%s"%e)
+            return False
+
+        if rpc_calls:
+            rpc_controller = self.rpc_controller
+            for i in range(0, len(rpc_calls), 2):
+                try:
+                    method = rpc_calls[i]
+                    request = rpc_calls[i+1]
+                    rpc_service.CallMethod(method, rpc_controller, request, None)
+                except Exception as e:
+                    self.logger.error("RpcChannel.input_data, call rpc method failed!")
         return True
 
     def on_disconnected():
