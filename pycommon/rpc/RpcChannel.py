@@ -4,59 +4,83 @@ from rpc.RpcController import RpcController
 import struct
 import logger
 
+PACKAGE_HEAD = '!ih'
+PACKAGE_HEAD_LENGTH = struct.calcsize(PACKAGE_HEAD)
+
+class Buffer():
+    def __init__(self):
+        self.buff = b''
+
+    def parse_data(self, rpc_service, data):
+        self.buff += data
+        buff_length = len(self.buff)
+        rpc_calls = None
+        for i in range(buff_length):  # use for instead of while
+            if buff_length <= PACKAGE_HEAD_LENGTH:
+                break
+            package_length, index = struct.unpack(PACKAGE_HEAD, data[:PACKAGE_HEAD_LENGTH])
+            if buff_length < package_length:
+                break
+            s_descriptor = rpc_service.GetDescriptor()
+            method = s_descriptor.methods.get(index, None)
+            if method:
+                request = rpc_service.GetRequestClass(method)()
+                if request:
+                    try:
+                        serialized = data[PACKAGE_HEAD_LENGTH:package_length]
+                        request.ParseFromString(serialized)
+                    except Exception as e:
+                        self.logger.error('Buffer.parse_data, error=%s'%e)
+                    else:
+                        rpc_calls = rpc_calls or []
+                        rpc_calls.append(method)
+                        rpc_calls.append(request)
+            self.buff = self.buff[package_length:]
+            buff_length = buff_length - package_length
+        return rpc_calls
 
 class RpcChannel(service.RpcChannel):
-	def __init__(self, rpc_service, conn):
-		super(RpcChannel, self).__init__()
-		self.logger = logger.get_logger("RpcChannel")
-		self.rpc_service = rpc_service
-		self.conn = conn
-		
-		self.rpc_controller = RpcController(self)
-		print("RpcChannel init")
-	
-	def set_rpc_service(self, rpc_service):
-		self.rpc_service = rpc_service
-	
-	def CallMethod(self, method_descriptor, rpc_controller,
+    def __init__(self, rpc_service, conn):
+        super(RpcChannel, self).__init__()
+        self.logger = logger.get_logger("RpcChannel")
+        self.rpc_service = rpc_service
+        self.conn = conn
+
+        self.rpc_controller = RpcController(self)
+        self.buff = Buffer()
+
+    def set_rpc_service(self, rpc_service):
+        self.rpc_service = rpc_service
+
+    def CallMethod(self, method_descriptor, rpc_controller,
                  request, response_class, done):
-		print("RpcChannel CallMethod")
-		index = method_descriptor.index
-		data = request.SerializeToString()
-		total_len = len(data) + 6
-		self.logger.debug("CallMethod:%d,%d,%s"%(total_len,index,data))
-		print("typeofdata",type(data))
-		
-		self.conn.send_data(b''.join([struct.pack('!ih', total_len, index), data]))
-		
-	def input_data(self, data):
-		print("input_data:%d"%len(data))
-		print("typeofdata",type(data))
-		if isinstance(data, str):
-			data = bytes(data, encoding = "utf8")
-		print("typeofdata",type(data),len(data))
-		total_len, index = struct.unpack('!ih', data[0:6])
-		#self.logger.debug("input_data:%d,%d" % (total_len, index))
-		print("input_data:%d,%d"%(total_len, index))
-		rpc_service = self.rpc_service
-		s_descriptor = rpc_service.GetDescriptor()
-		method = s_descriptor.methods[index]
-		try:
-			print("111")
-			request = rpc_service.GetRequestClass(method)()
-			print("111")
-			serialized = data[6:total_len]
-			print("111")
-			request.ParseFromString(serialized)
-			print("111",type(method),type(request))
-			rpc_service.CallMethod(method, self.rpc_controller, request, None)
-			print("111")
-			
-		except Exception as e:
-			self.logger.error("Call rpc method failed!")
-			print("error:%s"%e)
-			self.logger.log_last_except()
-		return True
-	
-	def on_disconnected():
-		pass
+        index = method_descriptor.index
+        data = request.SerializeToString()
+        package_length = PACKAGE_HEAD_LENGTH + len(data)
+        self.logger.debug("RpcChannel.CallMethod, index:%s, data:%s"%(index, data))
+        self.conn.send_data(b''.join([struct.pack(PACKAGE_HEAD, package_length, index), data]))
+
+    def input_data(self, data):
+        self.logger.debug("RpcChannel.input_data, length:%d, type:%s"%(len(data), type(data)))
+        data_type = type(data)
+        if data_type == str:
+            data = bytes(data, encoding = "utf8")
+        elif data_type != bytes:
+            self.logger.error('RpcChannel.input_data: expect bytes but got %s'%type(data))
+            return
+        rpc_service = self.rpc_service
+        rpc_calls = self.buff.parse_data(rpc_service, data)
+        rpc_controller = self.rpc_controller
+        for i in range(0, len(rpc_calls), 2):
+            try:
+                method = rpc_calls[i]
+                request = rpc_calls[i+1]
+                rpc_service.CallMethod(method, rpc_controller, request, None)
+            except Exception as e:
+                self.logger.error("RpcChannel.input_data, call rpc method failed!")
+            #self.logger.log_last_except()
+        return True
+
+    def on_disconnected():
+        pass
+
