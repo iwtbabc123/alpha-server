@@ -2,8 +2,11 @@
 
 #include <sys/time.h> 
 #include <time.h>
-#include "util.h"
-#include "logger.h"
+#include <stdio.h>
+#include <stdlib.h>
+
+#define USEC_PER_SEC 1000000
+#define MSEC_PER_SEC 1000
 
 #define evutil_timercmp(tvp, uvp, cmp)  \
 	(((tvp)->tv_sec == (uvp)->tv_sec) ? \
@@ -16,7 +19,7 @@ do {\
 	(vvp)->tv_usec = (tvp)->tv_usec - (uvp)->tv_usec; \
 	if ((vvp)->tv_usec < 0) { \
 		(vvp)->tv_sec--; \
-		(vvp)->tv_usec += 1000000; \
+		(vvp)->tv_usec += USEC_PER_SEC; \
 	}   \
 } while (0)
 
@@ -24,9 +27,9 @@ do {\
 do {\
 	(vvp)->tv_sec = (tvp)->tv_sec + (uvp)->tv_sec; \
 	(vvp)->tv_usec = (tvp)->tv_usec + (uvp)->tv_usec;   \
-	if ((vvp)->tv_usec >= 1000000) {  \
+	if ((vvp)->tv_usec >= USEC_PER_SEC) {  \
 	(vvp)->tv_sec++; \
-	(vvp)->tv_usec -= 1000000;   \
+	(vvp)->tv_usec -= USEC_PER_SEC;   \
 	}   \
 } while (0)
 
@@ -37,13 +40,13 @@ struct event{
 	unsigned int timer_id;
 	struct timeval ev_interval;
 	struct timeval ev_timeout;
-	int ev_exe_num;
+	int ev_num;
 
 	void (*ev_callback)(void *arg);
 	void *ev_arg;
 
 	int ev_res; /* result passed to event callback */
-	int ev_flags;
+	bool ev_flags;
 };
 
 /***构造函数  ***************/
@@ -75,18 +78,18 @@ static inline void min_heap_shift_down_(min_heap_t* s, unsigned hole_index, stru
 
 static inline void gettime(struct timeval *tm);
 
-Timer::Timer():_timer_id(0){
-	min_heap_ctor(&_min_heap);
+Timer::Timer():timer_id_(0){
+	min_heap_ctor(&min_heap_);
 }
 
 Timer::~Timer(){
-	for (unsigned int i = 0; i < _min_heap.n; i++){
-		free(_min_heap.p[i]);
+	for (unsigned int i = 0; i < min_heap_.n; i++){
+		free(min_heap_.p[i]);
 	}
-	min_heap_dtor(&_min_heap);
+	min_heap_dtor(&min_heap_);
 }
 
-unsigned int Timer::timer_add(int interval, void(*fun)(void*), void *arg,int flag /* = ABSOLUTE_TIMER */, int exe_num /* =  0 */)
+unsigned int Timer::timer_add(int interval, void(*fun)(void*), void *arg,bool forever /* = true */, int num /* =  1 */)
 {
 	struct event * ev = (struct event*) malloc(sizeof(struct event));
 	min_heap_elem_init(ev);
@@ -94,28 +97,27 @@ unsigned int Timer::timer_add(int interval, void(*fun)(void*), void *arg,int fla
 		return 0;
 	struct timeval now;
 	gettime(&now);
-	ev->ev_interval.tv_sec = interval / 1000;
-	ev->ev_interval.tv_usec = (interval % 1000) * 1000;
+	ev->ev_interval.tv_sec = interval / MSEC_PER_SEC;
+	ev->ev_interval.tv_usec = (interval % MSEC_PER_SEC) * MSEC_PER_SEC;
 	evutil_timeradd(&now, &(ev->ev_interval), &(ev->ev_timeout));
-	ev->ev_flags = flag;
+	ev->ev_flags = forever;
 	ev->ev_callback = fun;
 	ev->ev_arg = arg;
-	ev->ev_exe_num = exe_num;
-	ev->timer_id = _timer_id++;
-	LogDebug("timer_add");
-	min_heap_push(&_min_heap, ev);
+	ev->ev_num = num;
+	ev->timer_id = timer_id_++;
+	min_heap_push(&min_heap_, ev);
 
 	return ev->timer_id;
 }
 
 bool Timer::timer_remove(unsigned int timer_id)
 {
-	for (unsigned int i = 0; i < _min_heap.n; i++)
+	for (unsigned int i = 0; i < min_heap_.n; i++)
 	{
-		if (timer_id == _min_heap.p[i]->timer_id)
+		if (timer_id == min_heap_.p[i]->timer_id)
 		{
-			struct event * e = _min_heap.p[i];
-			min_heap_erase(&_min_heap, _min_heap.p[i]);
+			struct event * e = min_heap_.p[i];
+			min_heap_erase(&min_heap_, min_heap_.p[i]);
 			free(e);
 			return true;
 		}
@@ -127,20 +129,18 @@ int Timer::timer_process()
 {
 	struct event *event;
 	struct timeval now;
-	while ((event = min_heap_top(&_min_heap)) != NULL)
+	while ((event = min_heap_top(&min_heap_)) != nullptr)
 	{
-		LogDebug("timer_process");
 		gettime(&now);
 		if (evutil_timercmp(&now, &(event->ev_timeout), < )){
-			LogDebug("timer_process break");
 			break;
 		}
-		min_heap_pop(&_min_heap);
+		min_heap_pop(&min_heap_);
 		event->ev_callback(event->ev_arg);
-		if (event->ev_flags == ABSOLUTE_TIMER || (event->ev_flags == RELATIVE_TIMER && --event->ev_exe_num > 0))
+		if (event->ev_flags == true || (event->ev_flags == false && --event->ev_num > 0))
 		{
 			evutil_timeradd(&(event->ev_timeout), &(event->ev_interval), &(event->ev_timeout));
-			min_heap_push(&_min_heap, event);
+			min_heap_push(&min_heap_, event);
 		}
 		else
 		{
@@ -196,9 +196,7 @@ struct event* min_heap_top(min_heap_t* s)
 
 int min_heap_push(min_heap_t* s, struct event* e)
 {
-	LogDebug("min_heap_push");
 	if (min_heap_reserve(s, s->n + 1)){
-		LogDebug("min_heap_push error");
 		return -1;
 	}
 	min_heap_shift_up_(s, s->n++, e);
@@ -207,10 +205,8 @@ int min_heap_push(min_heap_t* s, struct event* e)
 
 struct event* min_heap_pop(min_heap_t* s)
 {
-	LogDebug("min_heap_pop");
 	if (s->n)
 	{
-		LogDebug("min_heap_pop in");
 		struct event* e = *s->p;
 		min_heap_shift_down_(s, 0u, s->p[--s->n]);
 		e->min_heap_idx = -1;

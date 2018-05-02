@@ -1,9 +1,6 @@
 #ifndef __ALPHA_TIMER_H__
 #define __ALPHA_TIMER_H__
 
-#define RELATIVE_TIMER 1
-#define ABSOLUTE_TIMER 2
-
 namespace alpha
 {
 struct event;
@@ -21,12 +18,12 @@ public:
     /**************************************  
      * input: interval: 每次执行的时间隔间, 单位是毫秒。  
      *fun arg : 回调函数以及参数。  
-    *flag: 绝对定时器还是相对定时器，如果是相对定时器  
-    *exe_num : 只有在相对定时器才有效，表示执行的次数。最少为1次  
+    *forever: 是否一直触发
+    *num : 如果forever为false,执行num次数。默认为1
     * return: 生成定时器的ID  
     **************************************/
-    unsigned int timer_add(int interval, void (*fun)(void*), void *arg,  int flag = ABSOLUTE_TIMER,
-    int exe_num = 0);
+    unsigned int timer_add(int interval, void (*fun)(void*), void *arg,  bool forever = true,
+    int num = 1);
     /***************************************  
      * description:  
      * 去掉已经加入的定时器，比如产生定时器的母体已经消亡了，在消亡之间要将其删除。  
@@ -40,8 +37,8 @@ public:
     int timer_process();
 
 private:
-    struct min_heap _min_heap;
-    unsigned int _timer_id;
+    struct min_heap min_heap_;
+    unsigned int timer_id_;
 };
 
 } /* namespace alpha */
