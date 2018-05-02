@@ -24,7 +24,7 @@ TARGET = $(BIN_HOME)/gate_server
 
 all:  $(TARGET) cleantmp
 $(BIN_HOME)/gate_server: $(OBJS) $(LIBS)
-	$(CC) $(CCFLAGS) $(LDFLAGS) $^ -o $@
+	$(CC) $(CCFLAGS) $^ -o $@ $(LDFLAGS)
 cleantmp:
 	rm -f *.o
 clean:
