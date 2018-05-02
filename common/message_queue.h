@@ -7,15 +7,11 @@
 #include <pthread.h>
 #include <list>
 #include "util.h"
+#include "message_data.h"
 
 namespace alpha{
 
-struct message_queue{
-	int sockfd;
-	int type;
-	const char* buffer;
-	int size;
-};
+typedef std::shared_ptr<MessageData> SP_MessageData;
 
 class MessageQueue{
 
@@ -31,14 +27,14 @@ public:
 
 	void MQ2S_Push(int fd, int type, const char* buffer, int size);
 
-	struct message_queue* MQ2S_Pop();
+	SP_MessageData MQ2S_Pop();
 
 public:
 	void MQ2C_Push(int fd, int type, char* data, int size);
-	struct message_queue* MQ2C_Pop();
+	SP_MessageData MQ2C_Pop();
 
 private:
-	bool _Push_With_Notify(message_queue* queue);
+	bool _Push_With_Notify(SP_MessageData queue);
 
 	void MQ2S_Lock();
 
@@ -56,8 +52,8 @@ private:
 
 
 private:
-	std::list<message_queue*> mq2s_;
-	std::list<message_queue*> mq2c_;
+	std::list<SP_MessageData> mq2s_;
+	std::list<SP_MessageData> mq2c_;
 
 	pthread_mutex_t mq2s_lock_;
 	pthread_cond_t mq2s_cond_;

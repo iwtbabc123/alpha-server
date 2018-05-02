@@ -12,18 +12,15 @@ Worker::~Worker(){
 }
 
 void Worker::Start(WorkerFunc func){
-	struct message_queue* q = nullptr;
 	while(1){
-		LogDebug("GateWorker:Start before\n");
-		q = MessageDispatch();
+		LogDebug("Worker:Start start=================>\n");
+		SP_MessageData q = MessageDispatch();
 		func(q);
-		delete q;
-		q = nullptr;
-
+		LogDebug("Worker:Start end===================<\n");
 	}
 }
 
-struct message_queue* Worker::MessageDispatch(){
+SP_MessageData Worker::MessageDispatch(){
 	return MessageQueue::getInstance().MQ2S_Pop();
 }
 

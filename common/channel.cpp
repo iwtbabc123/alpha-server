@@ -17,9 +17,8 @@ Channel::~Channel(){
 		delete io_watcher_;
 	}
 
-	for(auto itr = mq_.begin(); itr != mq_.end(); itr++){
-		message_queue* mq = * itr;
-		delete mq;
+	for(auto itr = mq_.begin(); itr != mq_.end();){
+		mq_.erase(itr++);
 	}
 }
 

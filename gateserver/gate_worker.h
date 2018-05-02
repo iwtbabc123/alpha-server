@@ -12,7 +12,7 @@ public:
 	~GateWorker();
 
 public:
-	void OnServer(struct message_queue* mq);
+	void OnServer(SP_MessageData mq);
 
 private:
 	PyObject* pModule_;

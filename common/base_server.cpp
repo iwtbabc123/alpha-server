@@ -15,9 +15,10 @@ void BaseServer::LoadConfig(const char* server_name, const char* config_file){
 	char* config = reader.GetAllConfig();
 	json_helper_.reset(new JsonHelper(config));
 }
-
-struct message_queue* MessageDispatch(){
+/*
+MessageData* MessageDispatch(){
 	return MessageQueue::getInstance().MQ2S_Pop();
 }
+*/
 
 }
