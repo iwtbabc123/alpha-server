@@ -3,6 +3,8 @@
 
 using namespace alpha;
 
+const char* config_file = "config.json";
+
 void siginthandler(int param)
 {
   printf("User pressed Ctrl+C\n");
@@ -23,7 +25,7 @@ int main(int argc, char* argv[]){
         return -1;
     }
 
-    char* server_name = argv[1]+2;
+    const char* server_name = argv[1]+2;
     GateServer server;
-    server.Start(server_name, "config.json");
+    server.Start(server_name, config_file);
 }

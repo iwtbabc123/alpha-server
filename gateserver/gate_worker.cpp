@@ -1,4 +1,5 @@
 #include "gate_worker.h"
+#include "message_queue.h"
 #include "logger.h"
 
 static PyObject*
@@ -88,8 +89,8 @@ GateWorker::~GateWorker(){
 	Py_Finalize();
 }
 
-void GateWorker::OnServer(struct message_queue* q){
-	pResult_ = PyObject_CallMethod(pModule_, "OnServer", "iis#", q->sockfd, q->type, q->buffer,q->size);
+void GateWorker::OnServer(SP_MessageData q){
+	pResult_ = PyObject_CallMethod(pModule_, "OnServer", "iis#", q->Sockfd(), q->Type(), q->Buffer(),q->Size());
 	if (pResult_ != NULL){
 		char* ret;
 		int result = 0;

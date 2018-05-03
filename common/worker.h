@@ -18,11 +18,11 @@ public:
 	Worker();
 	~Worker();
 
-typedef std::function<void (struct message_queue*)> WorkerFunc;
+typedef std::function<void (SP_MessageData)> WorkerFunc;
 
 public:
 	void Start(WorkerFunc func);
-	struct message_queue* MessageDispatch();
+	SP_MessageData MessageDispatch();
 private:
 
 
