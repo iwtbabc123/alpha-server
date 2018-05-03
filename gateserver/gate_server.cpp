@@ -1,11 +1,12 @@
-//#include <Python.h>
 #include "gate_server.h"
 #include "dispatcher.h"
 #include "worker.h"
 #include "thread.h"
+#include "message_queue.h"
+#include "config_reader.h"
 #include "gate_worker.h"
 
-GateServer::GateServer():worker_uptr_(nullptr){
+GateServer::GateServer():worker_uptr_(nullptr),json_uptr_(nullptr){
 }
 
 GateServer::~GateServer(){
@@ -13,8 +14,13 @@ GateServer::~GateServer(){
 }
 
 void GateServer::Start(const char* server_name, const char* config_file){
-	printf("main thread %u\n", (unsigned int)pthread_self());
-	//LoadConfig(server_name, config_file);
+	printf("START SERVER:%s,main thread %u\n", server_name,(unsigned int)pthread_self());
+	
+	server_name_ = server_name;
+	ConfigReader reader(config_file);
+	char* config = reader.GetAllConfig();
+	json_uptr_.reset(new JsonHelper(config));
+
 
 	void* params = nullptr;
 	auto socket_func = std::bind(&GateServer::thread_socket, this, std::placeholders::_1);
@@ -34,7 +40,9 @@ void GateServer::Start(const char* server_name, const char* config_file){
 void GateServer::thread_socket(void* params){
 	printf("new thread_socket %u\n", (unsigned int)pthread_self());
 
-	Dispatcher::getInstance().StartServer(4002);
+	int port;
+	json_uptr_->GetJsonItem2(server_name_.c_str(), "port", port);
+	Dispatcher::getInstance().StartServer(port);
 
 }
 
