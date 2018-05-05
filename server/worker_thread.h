@@ -1,15 +1,15 @@
-#ifndef __GATE_WORKER_H__
-#define __GATE_WORKER_H__
+#ifndef __WORKER_THREAD_H__
+#define __WORKER_THREAD_H__
 
 #include <Python.h>
 #include "message_queue.h"
 
 using namespace alpha;
 
-class GateWorker{
+class WorkerThread{
 public:
-	GateWorker();
-	~GateWorker();
+	WorkerThread(const char* script_path);
+	~WorkerThread();
 
 public:
 	void OnServer(SP_MessageData mq);

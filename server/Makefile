@@ -20,16 +20,16 @@ LIBS = ../common/libcommon.a
 SOURCE  := $(wildcard *.c) $(wildcard *.cpp)
 OBJS    := $(patsubst %.c,%.o,$(patsubst %.cpp,%.o,$(SOURCE)))
 
-TARGET = $(BIN_HOME)/gate_server
+TARGET = $(BIN_HOME)/server
 
 all:  $(TARGET) cleantmp
-$(BIN_HOME)/gate_server: $(OBJS) $(LIBS)
+$(BIN_HOME)/server: $(OBJS) $(LIBS)
 	$(CC) $(CCFLAGS) $^ -o $@ $(LDFLAGS)
 cleantmp:
 	rm -f *.o
 clean:
 	rm -f *.o
-	rm -f $(BIN_HOME)/gate_server
+	rm -f $(BIN_HOME)/server
 	
 # make rule
 %.o : %.c
