@@ -1,4 +1,4 @@
-#include "gate_worker.h"
+#include "worker_thread.h"
 #include "message_queue.h"
 #include "logger.h"
 
@@ -46,7 +46,7 @@ PyInit_alphaEngine(void)
 }
 #endif
 
-GateWorker::GateWorker():pModule_(nullptr),pFunc_(nullptr),pResult_(nullptr){
+WorkerThread::WorkerThread(const char* script_path):pModule_(nullptr),pFunc_(nullptr),pResult_(nullptr){
 	
 	PyImport_AppendInittab("alphaEngine", PyInit_alphaEngine);
 	//call py
@@ -65,7 +65,10 @@ GateWorker::GateWorker():pModule_(nullptr),pFunc_(nullptr),pResult_(nullptr){
 	}
 
 	PyRun_SimpleString("import sys");
-	PyRun_SimpleString("sys.path.insert(0, '../pyscripts/gate/')"); 
+
+	char script[64];
+	snprintf(script, 64, "sys.path.insert(0, '../pyscripts/%s/')", script_path);
+	PyRun_SimpleString(script); 
 
 	pModule_ = PyImport_ImportModule("pymain");
 	if(pModule_ != nullptr){
@@ -85,11 +88,11 @@ GateWorker::GateWorker():pModule_(nullptr),pFunc_(nullptr),pResult_(nullptr){
 
 }
 
-GateWorker::~GateWorker(){
+WorkerThread::~WorkerThread(){
 	Py_Finalize();
 }
 
-void GateWorker::OnServer(SP_MessageData q){
+void WorkerThread::OnServer(SP_MessageData q){
 	pResult_ = PyObject_CallMethod(pModule_, "OnServer", "iis#", q->Sockfd(), q->Type(), q->Buffer(),q->Size());
 	if (pResult_ != NULL){
 		char* ret;

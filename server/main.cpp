@@ -1,4 +1,4 @@
-#include "gate_server.h"
+#include "server.h"
 #include "util.h"
 
 using namespace alpha;
@@ -26,6 +26,6 @@ int main(int argc, char* argv[]){
     }
 
     const char* server_name = argv[1]+2;
-    GateServer server;
+    Server server;
     server.Start(server_name, config_file);
 }
