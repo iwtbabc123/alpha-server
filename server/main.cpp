@@ -1,7 +1,9 @@
-#include "gate_server.h"
+#include "server.h"
 #include "util.h"
 
 using namespace alpha;
+
+const char* config_file = "config.json";
 
 void siginthandler(int param)
 {
@@ -23,7 +25,7 @@ int main(int argc, char* argv[]){
         return -1;
     }
 
-    char* server_name = argv[1]+2;
-    GateServer server;
-    server.Start(server_name, "config.json");
+    const char* server_name = argv[1]+2;
+    Server server;
+    server.Start(server_name, config_file);
 }
