@@ -8,7 +8,7 @@
     ,"gate1":{
         "ip":"0.0.0.0"
         ,"port":4000
-        ,"script_path":"gate"
+        ,"script_path":"gateservice"
     }
     ,"game1":{
         "ip":"0.0.0.0"
