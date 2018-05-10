@@ -10,7 +10,7 @@ from rpc.tcp_client import TcpClient
 import asyncore
 
 LISTEN_IP = "127.0.0.1"
-LISTEN_PORT = 4002
+LISTEN_PORT = 4000
 
 # 被调用方,接收调用方(stub)的rpc请求
 class MyGateClient(IGateClient):

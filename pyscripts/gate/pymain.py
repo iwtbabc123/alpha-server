@@ -21,7 +21,7 @@ def init():
 def OnServer(sockfd, type, data):
 	print("OnServer:%d,%d,%s"%(sockfd,type,data))
 
-	if type == FD_TYPE_CONN:
+	if type == FD_TYPE_ACCEPT:
 		conn = TcpConnection(sockfd)
 		service_factory = GateService.GateService()
 		rpc_channel = RpcChannel(service_factory, conn)  # TODO, 多个connection的RpcChannel保存

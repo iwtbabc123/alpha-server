@@ -19,7 +19,6 @@ public:
 	int Fd(){return fd_;}
 
 	struct ev_io* GetIoWatcher(){return io_watcher_;}
-	void SetIoWatcher(struct ev_io* io_watcher){io_watcher_ = io_watcher;}
 
 	bool empty(){return mq_.empty();}
 	void push_back(SP_MessageData mq){mq_.push_back(mq);}
@@ -32,10 +31,9 @@ public:
 		return queue;
 	}
 
-protected:
-	int fd_;
-	//int fd_type_;
 private:
+	int fd_;
+protected:
 	struct ev_io* io_watcher_;
 
 	std::list<SP_MessageData> mq_;
