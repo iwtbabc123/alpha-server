@@ -24,8 +24,6 @@ if __name__ == "__main__":
 	request.authmsg = "justfortest"
 	
 	client = TcpClient(LISTEN_IP, LISTEN_PORT, IGateService_Stub, MyGateClient)
-	client.sync_connect()
-	
-	client.stub.connect_server(None, request, None)
-	
-	asyncore.loop()
+	if client.sync_connect():
+		client.stub.connect_server(None, request, None)
+		asyncore.loop()

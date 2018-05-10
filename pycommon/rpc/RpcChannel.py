@@ -19,7 +19,7 @@ class Buffer():
         for i in range(buff_length):  # use for instead of while
             if buff_length <= PACKAGE_HEAD_LENGTH:
                 break
-            package_length, index = struct.unpack(PACKAGE_HEAD, data[:PACKAGE_HEAD_LENGTH])
+            package_length, index = struct.unpack(PACKAGE_HEAD, self.buff[:PACKAGE_HEAD_LENGTH])
             if buff_length < package_length:
                 break
             s_descriptor = rpc_service.GetDescriptor()
@@ -28,7 +28,7 @@ class Buffer():
                 request = rpc_service.GetRequestClass(method)()
                 if request:
                     try:
-                        serialized = data[PACKAGE_HEAD_LENGTH:package_length]
+                        serialized = self.buff[PACKAGE_HEAD_LENGTH:package_length]
                         request.ParseFromString(serialized)
                     except Exception as e:
                         self.logger.error('Buffer.parse_data, error=%s'%e)

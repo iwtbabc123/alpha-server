@@ -1,7 +1,7 @@
 
 all:
 	cd common; make;
-	cd gateserver; make;
+	cd server; make;
 clean:
 	cd common; make clean;
-	cd gateserver; make clean;
+	cd server; make clean;

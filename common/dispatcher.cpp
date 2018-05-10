@@ -109,21 +109,20 @@ void Dispatcher::OnRead(int fd, int fd_type){
 	if (fd_type == FD_TYPE_ACCEPT){
 		char buffer[READ_BUF_SIZE] = {0};
 
-		int bytes = netlib_recv(fd, buffer, READ_BUF_SIZE);
-		if (bytes == 0){  //close
-			//remote close fd actively
-			RemoveEvent(fd);
-			OnFdClosed(fd);
-			LogInfo("Dispatcher::OnRead remote close fd: %d\n", fd);
-			return;
-		}
-		else if(bytes < 0){  //error
-			RemoveEvent(fd);
-			OnFdClosed(fd);
-			LogInfo("Dispatcher::OnRead fd error\n");
-			return;
-		}
-
+	int bytes = netlib_recv(fd, buffer, READ_BUF_SIZE);
+	if (bytes == 0){  //close
+		//remote close fd actively
+		RemoveEvent(fd);
+		OnFdClosed(fd);
+		LogInfo("Dispatcher::OnRead remote close fd: %d\n", fd);
+		MessageQueue::getInstance().MQ2S_Push(fd, FD_TYPE_CLOSE, NULL, bytes);
+	}
+	else if(bytes < 0){  //error
+		RemoveEvent(fd);
+		OnFdClosed(fd);
+		LogInfo("Dispatcher::OnRead fd error\n");
+	}
+	else{
 		char* socket_data = (char*)malloc(sizeof(char) * bytes);
 		memcpy(socket_data, buffer, bytes);
 		//std::string str_buf(buffer);

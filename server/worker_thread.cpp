@@ -64,18 +64,18 @@ WorkerThread::WorkerThread(const char* script_path):pModule_(nullptr),pFunc_(nul
 		LogDebug("init alpha module error\n");
 	}
 
-	PyRun_SimpleString("import sys");
-
-	char script[64];
-	snprintf(script, 64, "sys.path.insert(0, '../pyscripts/%s/')", script_path);
-	PyRun_SimpleString(script); 
+	char script[128];
+	snprintf(script, 128, "../pyscripts/%s/", script_path);
+	PyObject *sys_path = PySys_GetObject("path");
+	PyList_Append(sys_path, PyUnicode_FromString(script));
 
 	pModule_ = PyImport_ImportModule("pymain");
 	if(pModule_ != nullptr){
-		LogDebug("init module success\n");
+		LogDebug("init module <%s.pymain>: success\n", script_path);
 	}
 	else{
-		LogDebug("init module error\n");
+		PyErr_Print();
+		LogDebug("init module <%s.pymain>: error\n", script_path);
 	}
 
 	pResult_ = PyObject_CallMethod(pModule_, "init", "");
