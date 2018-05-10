@@ -48,12 +48,33 @@ void Dispatcher::StartServer(uint16_t port){
 	ev_init(&io_watcher, accept_cb);
 	AddEvent(&io_watcher, fd, EV_READ);
 
-	//LogInfo("EpollServer::StartServer:listen fd:%d\n",fd);
+	LogInfo("Dispatcher::StartServer:listen fd:%d\n",fd);
 	
 	InitEventFd();
-	//InitTimer();
+	InitTimer();
 
 	ev_run(loop_, 0);
+}
+
+/*
+*此进程作为client连接某个server,
+*eg: gate->game,game->db.
+*/
+void Dispatcher::ConnectIpPort(const char* ip, uint16_t port){
+	LogDebug("Dispatcher::ConnectIpPort ip=%s,port=%d\n", ip, port);
+
+	bool flag = true;
+
+	do{
+		int conn_fd = netlib_socket();
+		if (conn_fd < 0){
+			LogError("Dispatcher::ConnectIpPort socket error");
+			continue;
+		}
+		flag = false;
+		SP_Connector connector(new Connector(conn_fd, ip, port));
+		connector_map_[conn_fd] = connector;
+	}while(flag);
 }
 
 void Dispatcher::OnAccept(int fd){
@@ -76,100 +97,85 @@ void Dispatcher::OnAccept(int fd){
 	AddEvent(conn_ev, conn_fd, EV_READ);
 	AddChannel(conn_ev, conn_fd);
 
-	MessageQueue::getInstance().MQ2S_Push(conn_fd, FD_TYPE_CONN, nullptr, 0);
+	MessageQueue::getInstance().MQ2S_Push(conn_fd, FD_TYPE_ACCEPT, nullptr, 0);
 
 	//free(conn_ev);
 
 }
 
-void Dispatcher::OnRead(int fd){
+void Dispatcher::OnRead(int fd, int fd_type){
 	LogDebug("Dispatcher::OnRead:%d\n", fd);
 
-	char buffer[READ_BUF_SIZE] = {0};
+	if (fd_type == FD_TYPE_ACCEPT){
+		char buffer[READ_BUF_SIZE] = {0};
 
-	int bytes = netlib_recv(fd, buffer, READ_BUF_SIZE);
-	if (bytes == 0){  //close
-		//remote close fd actively
-		RemoveEvent(fd);
-		OnFdClosed(fd);
-		LogInfo("Dispatcher::OnRead remote close fd: %d\n", fd);
-		MessageQueue::getInstance().MQ2S_Push(fd, FD_TYPE_CLOSE, NULL, bytes);
-	}
-	else if(bytes < 0){  //error
-		RemoveEvent(fd);
-		OnFdClosed(fd);
-		LogInfo("Dispatcher::OnRead fd error\n");
-	}
-	else{
-		char* socket_data = (char*)malloc(sizeof(char) * bytes);
-		memcpy(socket_data, buffer, bytes);
-		//std::string str_buf(buffer);
-		LogInfo("Dispatcher::OnRead %d bytes\n", bytes);
-		MessageQueue::getInstance().MQ2S_Push(fd, FD_TYPE_READ, socket_data, bytes);
+		int bytes = netlib_recv(fd, buffer, READ_BUF_SIZE);
+		if (bytes == 0){  //close
+			//remote close fd actively
+			RemoveEvent(fd);
+			OnFdClosed(fd);
+			LogInfo("Dispatcher::OnRead remote close fd: %d\n", fd);
+			MessageQueue::getInstance().MQ2S_Push(fd, FD_TYPE_CLOSE, NULL, bytes);
+		}
+		else if(bytes < 0){  //error
+			RemoveEvent(fd);
+			OnFdClosed(fd);
+			LogInfo("Dispatcher::OnRead fd error\n");
+		}
+		else{
+			char* socket_data = (char*)malloc(sizeof(char) * bytes);
+			memcpy(socket_data, buffer, bytes);
+			//std::string str_buf(buffer);
+			LogInfo("Dispatcher::OnRead %d bytes\n", bytes);
+			MessageQueue::getInstance().MQ2S_Push(fd, FD_TYPE_READ, socket_data, bytes);
+		}
 	}
 }
 
-void Dispatcher::OnWrite(int fd){
+void Dispatcher::OnWrite(int fd, int fd_type){
 	LogDebug("EpollServer::OnWrite:%d\n",fd);
-	//if (fdtype == FD_TYPE_SERVER)
-	//{
-	auto channel = this->GetChannel(fd);
-	if (channel == nullptr)
-	{
-		LogError("EpollServer::OnWrite channel null\n");
-		return;
-	}
-	//}
-	/*
-	else if (fdtype == FD_TYPE_CONNECT)
-	{
-		channel = GetConnector(fd);
-		if (channel == NULL)
+	
+	if (fd_type == FD_TYPE_ACCEPT){
+		auto channel = this->GetChannel(fd);
+		if (channel == nullptr)
 		{
-			LogError("EpollServer::OnWrite connector null\n");
+			LogError("EpollServer::OnWrite channel null\n");
 			return;
 		}
-	}
-	else
-	{
-		return;
-	}
-	*/
 
-	//Buffer& out_buf = channel->OutBuffer();
+		int events = EV_READ;
 
-	int events = EV_READ;
-
-	while(!channel->empty())
-	{
-		auto mq = channel->pop_front();
-
-		LogDebug("EpollServer::OnWrite send_len %d\n", mq->Size());
-
-		char* tmp = (char*)malloc(sizeof(char) * mq->Size());
-		memcpy(tmp, mq->Buffer(), mq->Size());
-		//TODO,只发送一部分mq，剩余的尚未处理
-		int ret = netlib_send(fd, tmp, mq->Size());
-		if (ret == -1)  //TODO,发送不成功要重新发送
+		while(!channel->empty())
 		{
-			LogWarning("netlib_send -1\n");
-			//
-			//UpdateEvent(fd, EPOLLIN | EPOLLOUT);
-			events |= EV_WRITE;
-			break;
-		}
-		else if (ret == 0)
-		{	
-			LogDebug("netlib_send 0\n");
-			break;
-		}
-		else if (ret > 0)
-		{
-			LogDebug("netlib_send %d\n", ret);
-		}
-	}
+			auto mq = channel->pop_front();
 
-	UpdateEvent(fd, events, channel);
+			LogDebug("EpollServer::OnWrite send_len %d\n", mq->Size());
+
+			char* tmp = (char*)malloc(sizeof(char) * mq->Size());
+			memcpy(tmp, mq->Buffer(), mq->Size());
+			//TODO,只发送一部分mq，剩余的尚未处理
+			int ret = netlib_send(fd, tmp, mq->Size());
+			if (ret == -1)  //TODO,发送不成功要重新发送
+			{
+				LogWarning("netlib_send -1\n");
+				//
+				//UpdateEvent(fd, EPOLLIN | EPOLLOUT);
+				events |= EV_WRITE;
+				break;
+			}
+			else if (ret == 0)
+			{	
+				LogDebug("netlib_send 0\n");
+				break;
+			}
+			else if (ret > 0)
+			{
+				LogDebug("netlib_send %d\n", ret);
+			}
+		}
+
+		UpdateEvent(fd, events, channel);
+	}
 }
 
 void Dispatcher::OnEventfd(int efd)
@@ -209,6 +215,9 @@ void Dispatcher::OnEventfd(int efd)
 				events |= EV_WRITE;
 			}
 			UpdateEvent(mq->Sockfd(), events, channel);
+		}
+		else if(mq->Type() == FD_TYPE_SERVER){
+
 		}
 		/*
 		else if (mq->type == MQ_TYPE_BROADCAST)
@@ -297,6 +306,10 @@ void Dispatcher::OnEventfd(int efd)
 			continue;
 		}
 	}
+}
+
+void Dispatcher::OnTimer(){
+	ConnectOtherServer();
 }
 
 int Dispatcher::AddEvent(struct ev_io* ev, int fd, short events){
@@ -394,6 +407,42 @@ void Dispatcher::InitEventFd(){
 	AddEvent(efd_watcher, eventfd_, EV_READ);
 }
 
+void Dispatcher::InitTimer(){
+	struct ev_timer* timeout_watcher = (struct ev_timer*) malloc(sizeof(struct ev_timer));
+	ev_timer_init(timeout_watcher, init_timeout_cb, 1, 3); //1s后开始，3s的循环间隔
+	ev_timer_start(loop_, timeout_watcher);
+}
+
+void Dispatcher::ConnectOtherServer(){
+	for (auto itr = connector_map_.begin(); itr != connector_map_.end(); ++itr){
+		SP_Connector connector = itr->second;
+		if ( !connector->IsSuccess() ){
+			//connect
+			int conn_fd = connector->Fd();
+			int ret = netlib_connect(conn_fd, connector->GetServerIp(), connector->GetServerPort());
+			if (ret == 0){
+				struct ev_io* conn_ev = (struct ev_io*) malloc(sizeof(struct ev_io));
+				if (conn_ev == NULL)
+				{
+					LogError("malloc error in OnTryConnect\n");
+					return;
+				}
+
+				ev_init(conn_ev, connector_cb);
+				AddEvent(conn_ev, conn_fd, EV_READ);
+
+				connector->SetIoWatcher(conn_ev);  //加入ev_io
+				connector->SetSuccess(true);
+				
+				LogDebug("connect success:%s,%d\n", connector->GetServerIp(),connector->GetServerPort());
+			}
+			else{
+				LogDebug("connect fail:%d,%s,%d\n",conn_fd, connector->GetServerIp(), connector->GetServerPort());
+			}
+		}
+	}
+}
+
 void Dispatcher::accept_cb(struct ev_loop* loop, struct ev_io* watcher, int revents){
 	int fd = watcher->fd;
 
@@ -415,10 +464,10 @@ void Dispatcher::r_w_cb(struct ev_loop* loop, struct ev_io* watcher, int revents
 	}
 
 	if (EV_READ & revents){
-		Dispatcher::getInstance().OnRead(fd);
+		Dispatcher::getInstance().OnRead(fd, FD_TYPE_ACCEPT);
 	}
 	if (EV_WRITE & revents){
-		Dispatcher::getInstance().OnWrite(fd);
+		Dispatcher::getInstance().OnWrite(fd, FD_TYPE_ACCEPT);
 	}
 }
 
@@ -433,7 +482,27 @@ void Dispatcher::eventfd_cb(struct ev_loop* loop, struct ev_io* watcher, int rev
 	}
 
 	Dispatcher::getInstance().OnEventfd(fd);
-	
+}
+
+void Dispatcher::connector_cb(struct ev_loop* loop, struct ev_io* watcher, int revents){
+	int fd = watcher->fd;
+	//LogDebug("connector_cb %d,%d\n", fd, revents);
+	if (EV_ERROR & revents){
+		//LogError("error event in read or write\n");
+		return;
+	}
+
+	if (EV_READ & revents){
+		Dispatcher::getInstance().OnRead(fd, FD_TYPE_CONNECT);
+	}
+	if (EV_WRITE & revents){
+		Dispatcher::getInstance().OnWrite(fd, FD_TYPE_CONNECT);
+	}
+}
+
+void Dispatcher::init_timeout_cb(struct ev_loop* loop, struct ev_timer* watcher, int revents){
+	LogDebug("init_timeout_cb \n");
+	Dispatcher::getInstance().OnTimer();
 }
 
 }

@@ -9,11 +9,13 @@
         "ip":"0.0.0.0"
         ,"port":4000
         ,"script_path":"gateservice"
+        ,"connect_server":"game_list"
     }
     ,"game1":{
         "ip":"0.0.0.0"
         ,"port":5000
         ,"script_path":"game"
+        ,"connect_server":"db_list"
     }
 
 }
