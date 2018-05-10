@@ -26,7 +26,7 @@ namespace alpha{
 #define FD_TYPE_ACCEPT		1  //accept client socket
 #define FD_TYPE_CONNECT		2  //connect to server
 #define FD_TYPE_READ		3  //read socket data
-#define FD_TYPE_CLOSE	3
+#define FD_TYPE_CLOSE		4  //close socket
 
 //to socket fd
 #define FD_TYPE_CLIENT	11
