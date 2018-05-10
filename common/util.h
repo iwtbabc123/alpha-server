@@ -25,6 +25,7 @@ namespace alpha{
 //to worker fd
 #define FD_TYPE_CONN	1
 #define FD_TYPE_READ	2
+#define FD_TYPE_CLOSE	3
 
 //to socket fd
 #define FD_TYPE_CLIENT	11

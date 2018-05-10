@@ -93,21 +93,20 @@ void Dispatcher::OnRead(int fd){
 		RemoveEvent(fd);
 		OnFdClosed(fd);
 		LogInfo("Dispatcher::OnRead remote close fd: %d\n", fd);
-		return;
+		MessageQueue::getInstance().MQ2S_Push(fd, FD_TYPE_CLOSE, NULL, bytes);
 	}
 	else if(bytes < 0){  //error
 		RemoveEvent(fd);
 		OnFdClosed(fd);
 		LogInfo("Dispatcher::OnRead fd error\n");
-		return;
 	}
-
-	char* socket_data = (char*)malloc(sizeof(char) * bytes);
-	memcpy(socket_data, buffer, bytes);
-	//std::string str_buf(buffer);
-	LogInfo("Dispatcher::OnRead %d bytes\n", bytes);
-	MessageQueue::getInstance().MQ2S_Push(fd, FD_TYPE_READ, socket_data, bytes);
-
+	else{
+		char* socket_data = (char*)malloc(sizeof(char) * bytes);
+		memcpy(socket_data, buffer, bytes);
+		//std::string str_buf(buffer);
+		LogInfo("Dispatcher::OnRead %d bytes\n", bytes);
+		MessageQueue::getInstance().MQ2S_Push(fd, FD_TYPE_READ, socket_data, bytes);
+	}
 }
 
 void Dispatcher::OnWrite(int fd){

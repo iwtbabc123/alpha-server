@@ -10,7 +10,7 @@ from rpc.tcp_client import TcpClient
 import asyncore
 
 LISTEN_IP = "127.0.0.1"
-LISTEN_PORT = 4002
+LISTEN_PORT = 4000
 
 # 被调用方,接收调用方(stub)的rpc请求
 class MyGateClient(IGateClient):
@@ -24,8 +24,6 @@ if __name__ == "__main__":
 	request.authmsg = "justfortest"
 	
 	client = TcpClient(LISTEN_IP, LISTEN_PORT, IGateService_Stub, MyGateClient)
-	client.sync_connect()
-	
-	client.stub.connect_server(None, request, None)
-	
-	asyncore.loop()
+	if client.sync_connect():
+		client.stub.connect_server(None, request, None)
+		asyncore.loop()

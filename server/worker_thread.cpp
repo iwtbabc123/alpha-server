@@ -65,14 +65,16 @@ WorkerThread::WorkerThread(const char* script_path):pModule_(nullptr),pFunc_(nul
 	}
 
 	char script[128];
-	snprintf(script, 128, "import sys;sys.path.insert(0, '../pyscripts/%s/')", script_path);
-	PyRun_SimpleString(script);
+	snprintf(script, 128, "../pyscripts/%s/", script_path);
+	PyObject *sys_path = PySys_GetObject("path");
+	PyList_Append(sys_path, PyUnicode_FromString(script));
 
 	pModule_ = PyImport_ImportModule("pymain");
 	if(pModule_ != nullptr){
 		LogDebug("init module <%s.pymain>: success\n", script_path);
 	}
 	else{
+		PyErr_Print();
 		LogDebug("init module <%s.pymain>: error\n", script_path);
 	}
 
