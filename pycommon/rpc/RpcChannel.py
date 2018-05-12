@@ -41,6 +41,7 @@ class Buffer():
         return rpc_calls
 
 class RpcChannel(service.RpcChannel):
+    '''要好好设计rpc_channel与conn的关系'''
     def __init__(self, rpc_service, conn):
         super(RpcChannel, self).__init__()
         self.logger = logger.get_logger("RpcChannel")
