@@ -9,6 +9,9 @@ class ClientProxy():
 	
 	def connect_reply(self, controller, response):
 		self.client_stub.connect_reply(controller, response, None)
+	
+	def entity_message(self, controller, response):
+		self.client_stub.entity_message(controller, response, None)
 
 class GameService(client_server_pb2.IServerService):
 	def __init__(self):
@@ -29,7 +32,20 @@ class GameService(client_server_pb2.IServerService):
 		client_proxy.connect_reply(controller, response)
 
 	def entity_message(self, controller, request, _done):
-		pass
+		rpc_channel = controller.rpc_channel
+		entityid = request.id
+		msg = request.method
+		para = request.parameters
+		
+		response = common_pb2.EntityMessage()
+		response.id = entityid
+		response.method = "echo:"+msg + str(entityid)
+		response.parameters = para
+		
+		print("response.msg:%s"%response.method)
+
+		client_proxy = self._get_client_proxy(rpc_channel)
+		client_proxy.entity_message(controller, response)
 
 	def _get_client_proxy(self, rpc_channel):
 		client_proxy = ClientProxy(rpc_channel)
