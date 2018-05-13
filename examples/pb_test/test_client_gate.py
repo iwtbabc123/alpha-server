@@ -17,7 +17,9 @@ LISTEN_PORT = 4000
 class MyGateClient(IGateClient):
 	def connect_reply(self, rpc_controller, request, done):
 		print("MyEchoClientReply:%s"%request.extramsg)
-		
+	
+	def entity_message(self, rpc_controller, request, done):
+		print("client:entity_message:%"%request.method)
 
 if __name__ == "__main__":
 	request = ConnectServerRequest()
