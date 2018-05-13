@@ -3,10 +3,11 @@ from os.path import abspath, join, dirname
 sys.path.insert(0, join(abspath(dirname(__file__)), '../../pycommon'))
 sys.path.insert(0, join(abspath(dirname(__file__)), '../../pycommon/library'))
 sys.path.insert(0, join(abspath(dirname(__file__)), '../../pycommon/proto_python'))
+sys.path.insert(0, join(abspath(dirname(__file__)), '../'))
 
 from proto_python.client_gate_pb2 import IGateService_Stub,IGateClient
 from proto_python.common_pb2 import ConnectServerRequest
-from rpc.tcp_client import TcpClient
+from pb_test.tcp_client import TcpClient
 import asyncore
 
 LISTEN_IP = "127.0.0.1"
