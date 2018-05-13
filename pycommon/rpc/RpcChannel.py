@@ -85,7 +85,7 @@ class RpcChannel(service.RpcChannel):
                     request = rpc_calls[i+1]
                     rpc_service.CallMethod(method, rpc_controller, request, None)
                 except Exception as e:
-                    self.logger.error("RpcChannel.input_data, call rpc method failed!")
+                    self.logger.error("RpcChannel.input_data, call rpc method failed! error=%s"%e)
         return True
 
     def on_disconnected():
