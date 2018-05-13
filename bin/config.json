@@ -14,7 +14,7 @@
     ,"game1":{
         "ip":"0.0.0.0"
         ,"port":5000
-        ,"script_path":"game"
+        ,"script_path":"gameservice"
         ,"connect_server":"db_list"
     }
 

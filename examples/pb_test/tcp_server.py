@@ -2,7 +2,7 @@
 import socket
 import asyncore
 
-from rpc.tcp_connection import TcpConnection
+from pb_test.tcp_connection import TcpConnection
 from rpc.RpcChannel import RpcChannel
 import logger
 

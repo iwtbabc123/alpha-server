@@ -422,8 +422,7 @@ void Dispatcher::ConnectOtherServer(){
 			int ret = netlib_connect(conn_fd, connector->GetServerIp(), connector->GetServerPort());
 			if (ret == 0){
 				struct ev_io* conn_ev = (struct ev_io*) malloc(sizeof(struct ev_io));
-				if (conn_ev == NULL)
-				{
+				if (conn_ev == nullptr){
 					LogError("malloc error in OnTryConnect\n");
 					return;
 				}
@@ -452,7 +451,6 @@ void Dispatcher::accept_cb(struct ev_loop* loop, struct ev_io* watcher, int reve
 	}
 	printf("accept_cb \n");
 	Dispatcher::getInstance().OnAccept(fd);
-	//EpollServer::getSingleton().OnAccept(fd);
 }
 
 void Dispatcher::r_w_cb(struct ev_loop* loop, struct ev_io* watcher, int revents){
@@ -501,7 +499,7 @@ void Dispatcher::connector_cb(struct ev_loop* loop, struct ev_io* watcher, int r
 }
 
 void Dispatcher::init_timeout_cb(struct ev_loop* loop, struct ev_timer* watcher, int revents){
-	LogDebug("init_timeout_cb \n");
+	//LogDebug("init_timeout_cb \n");
 	Dispatcher::getInstance().OnTimer();
 }
 
