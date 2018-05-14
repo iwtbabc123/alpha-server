@@ -7,7 +7,7 @@ sys.path.insert(0, join(abspath(dirname(__file__)), '../gameservice'))
 
 import logger
 from defines import *
-from GameServer import GameServer
+from framework.GameServer import GameServer
 
 logger = logger.get_logger('pymain')
 
@@ -26,6 +26,7 @@ def OnServer(sockfd, type, data):
 		except Exception as e:
 			print("Exception:",e)
 	elif type == FD_TYPE_READ:
+		logger.debug('OnServer,type=FD_TYPE_READ,sock=%s'%sockfd)
 		try:
 			GameServer().recv_data(sockfd, data)
 		except Exception as e:

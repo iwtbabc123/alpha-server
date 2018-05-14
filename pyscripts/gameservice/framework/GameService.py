@@ -1,7 +1,6 @@
 __author__ = 'majianfei'
 
 from proto_python import common_pb2,client_server_pb2
-#from proto_python.common_pb2 import ConnectServerReply
 
 class ClientProxy():
 	def __init__(self, rpc_channel):
@@ -14,6 +13,7 @@ class ClientProxy():
 		self.client_stub.entity_message(controller, response, None)
 
 class GameService(client_server_pb2.IServerService):
+	'''实现gpb rpc service'''
 	def __init__(self):
 		pass
 

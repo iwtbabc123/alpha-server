@@ -1,4 +1,4 @@
-from GameService import GameService
+from framework.GameService import GameService
 from rpc.RpcChannelMgr import RpcChannelMgr
 from rpc.TcpConnection import TcpConnection
 from rpc.RpcChannel import RpcChannel
