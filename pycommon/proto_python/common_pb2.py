@@ -19,10 +19,50 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='common.proto',
   package='alpha.server',
   syntax='proto3',
-  serialized_pb=_b('\n\x0c\x63ommon.proto\x12\x0c\x61lpha.server\"\x06\n\x04Void\"9\n\x14\x43onnectServerRequest\x12\x10\n\x08\x65ntityid\x18\x01 \x01(\x05\x12\x0f\n\x07\x61uthmsg\x18\x02 \x01(\t\"8\n\x12\x43onnectServerReply\x12\x10\n\x08\x65ntityid\x18\x01 \x01(\x05\x12\x10\n\x08\x65xtramsg\x18\x02 \x01(\t\"?\n\rEntityMessage\x12\n\n\x02id\x18\x01 \x01(\x05\x12\x0e\n\x06method\x18\x02 \x01(\t\x12\x12\n\nparameters\x18\x03 \x01(\tB\x03\x90\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n\x0c\x63ommon.proto\x12\x0c\x61lpha.server\"\x06\n\x04Void\"\x89\x01\n\x14\x43onnectServerRequest\x12\x10\n\x08\x65ntityid\x18\x01 \x01(\t\x12<\n\x04type\x18\x02 \x01(\x0e\x32..alpha.server.ConnectServerRequest.RequestType\"!\n\x0bRequestType\x12\x12\n\x0eNEW_CONNECTION\x10\x00\"\x9d\x01\n\x12\x43onnectServerReply\x12\x10\n\x08\x65ntityid\x18\x01 \x01(\t\x12\x38\n\x04type\x18\x02 \x01(\x0e\x32*.alpha.server.ConnectServerReply.ReplyType\x12\x10\n\x08\x65xtramsg\x18\x03 \x01(\t\")\n\tReplyType\x12\r\n\tCONNECTED\x10\x00\x12\r\n\tFORBIDDEN\x10\x01\"E\n\rEntityMessage\x12\x10\n\x08\x65ntityid\x18\x01 \x01(\t\x12\x0e\n\x06method\x18\x02 \x01(\t\x12\x12\n\nparameters\x18\x03 \x01(\tB\x03\x90\x01\x01\x62\x06proto3')
 )
 
 
+
+_CONNECTSERVERREQUEST_REQUESTTYPE = _descriptor.EnumDescriptor(
+  name='RequestType',
+  full_name='alpha.server.ConnectServerRequest.RequestType',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='NEW_CONNECTION', index=0, number=0,
+      options=None,
+      type=None),
+  ],
+  containing_type=None,
+  options=None,
+  serialized_start=143,
+  serialized_end=176,
+)
+_sym_db.RegisterEnumDescriptor(_CONNECTSERVERREQUEST_REQUESTTYPE)
+
+_CONNECTSERVERREPLY_REPLYTYPE = _descriptor.EnumDescriptor(
+  name='ReplyType',
+  full_name='alpha.server.ConnectServerReply.ReplyType',
+  filename=None,
+  file=DESCRIPTOR,
+  values=[
+    _descriptor.EnumValueDescriptor(
+      name='CONNECTED', index=0, number=0,
+      options=None,
+      type=None),
+    _descriptor.EnumValueDescriptor(
+      name='FORBIDDEN', index=1, number=1,
+      options=None,
+      type=None),
+  ],
+  containing_type=None,
+  options=None,
+  serialized_start=295,
+  serialized_end=336,
+)
+_sym_db.RegisterEnumDescriptor(_CONNECTSERVERREPLY_REPLYTYPE)
 
 
 _VOID = _descriptor.Descriptor(
@@ -58,15 +98,15 @@ _CONNECTSERVERREQUEST = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='entityid', full_name='alpha.server.ConnectServerRequest.entityid', index=0,
-      number=1, type=5, cpp_type=1, label=1,
-      has_default_value=False, default_value=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='authmsg', full_name='alpha.server.ConnectServerRequest.authmsg', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=_b("").decode('utf-8'),
+      name='type', full_name='alpha.server.ConnectServerRequest.type', index=1,
+      number=2, type=14, cpp_type=8, label=1,
+      has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
@@ -75,6 +115,7 @@ _CONNECTSERVERREQUEST = _descriptor.Descriptor(
   ],
   nested_types=[],
   enum_types=[
+    _CONNECTSERVERREQUEST_REQUESTTYPE,
   ],
   options=None,
   is_extendable=False,
@@ -82,8 +123,8 @@ _CONNECTSERVERREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=38,
-  serialized_end=95,
+  serialized_start=39,
+  serialized_end=176,
 )
 
 
@@ -96,14 +137,21 @@ _CONNECTSERVERREPLY = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='entityid', full_name='alpha.server.ConnectServerReply.entityid', index=0,
-      number=1, type=5, cpp_type=1, label=1,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='type', full_name='alpha.server.ConnectServerReply.type', index=1,
+      number=2, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='extramsg', full_name='alpha.server.ConnectServerReply.extramsg', index=1,
-      number=2, type=9, cpp_type=9, label=1,
+      name='extramsg', full_name='alpha.server.ConnectServerReply.extramsg', index=2,
+      number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -113,6 +161,7 @@ _CONNECTSERVERREPLY = _descriptor.Descriptor(
   ],
   nested_types=[],
   enum_types=[
+    _CONNECTSERVERREPLY_REPLYTYPE,
   ],
   options=None,
   is_extendable=False,
@@ -120,8 +169,8 @@ _CONNECTSERVERREPLY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=97,
-  serialized_end=153,
+  serialized_start=179,
+  serialized_end=336,
 )
 
 
@@ -133,9 +182,9 @@ _ENTITYMESSAGE = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='id', full_name='alpha.server.EntityMessage.id', index=0,
-      number=1, type=5, cpp_type=1, label=1,
-      has_default_value=False, default_value=0,
+      name='entityid', full_name='alpha.server.EntityMessage.entityid', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
@@ -165,10 +214,14 @@ _ENTITYMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=155,
-  serialized_end=218,
+  serialized_start=338,
+  serialized_end=407,
 )
 
+_CONNECTSERVERREQUEST.fields_by_name['type'].enum_type = _CONNECTSERVERREQUEST_REQUESTTYPE
+_CONNECTSERVERREQUEST_REQUESTTYPE.containing_type = _CONNECTSERVERREQUEST
+_CONNECTSERVERREPLY.fields_by_name['type'].enum_type = _CONNECTSERVERREPLY_REPLYTYPE
+_CONNECTSERVERREPLY_REPLYTYPE.containing_type = _CONNECTSERVERREPLY
 DESCRIPTOR.message_types_by_name['Void'] = _VOID
 DESCRIPTOR.message_types_by_name['ConnectServerRequest'] = _CONNECTSERVERREQUEST
 DESCRIPTOR.message_types_by_name['ConnectServerReply'] = _CONNECTSERVERREPLY

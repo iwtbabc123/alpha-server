@@ -16,6 +16,6 @@ service IServerService {
 service IClientService {
 	// 对客户端的连接请求进行回复
 	rpc connect_reply(ConnectServerReply) returns (Void);
-
-	rpc entity_message(EntityMessage) returns (Void); // Entity消息 
+	// Entity消息 
+	rpc entity_message(EntityMessage) returns (Void);
 }
