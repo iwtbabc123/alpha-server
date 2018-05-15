@@ -20,29 +20,29 @@ class GameService(client_server_pb2.IServerService):
 	def connect_server(self, controller, request, _done):
 		rpc_channel = controller.rpc_channel
 		entityid = request.entityid
-		msg = request.authmsg
 		
 		response = common_pb2.ConnectServerReply()
 		response.entityid = entityid
-		response.extramsg = "echo:"+msg + str(entityid)
+		response.type = common_pb2.ConnectServerReply.CONNECTED
 		
-		print("response.msg:%s"%response.extramsg)
-
+		#print("response.msg:%s"%response.extramsg)
+		print("connect server response")
 		client_proxy = self._get_client_proxy(rpc_channel)
 		client_proxy.connect_reply(controller, response)
 
 	def entity_message(self, controller, request, _done):
 		rpc_channel = controller.rpc_channel
-		entityid = request.id
+		entityid = request.entityid
 		msg = request.method
 		para = request.parameters
 		
 		response = common_pb2.EntityMessage()
-		response.id = entityid
-		response.method = "echo:"+msg + str(entityid)
+		response.entityid = entityid
+		response.method = "callclient"
 		response.parameters = para
 		
-		print("response.msg:%s"%response.method)
+		#print("response.msg:%s"%response.method)
+		print("entity message response")
 
 		client_proxy = self._get_client_proxy(rpc_channel)
 		client_proxy.entity_message(controller, response)
