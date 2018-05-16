@@ -24,7 +24,7 @@ class MyClientService(client_server_pb2.IClientService):
 		print("sleep 3s")
 		entity_msg = common_pb2.EntityMessage()
 		entity_msg.entityid = request.entityid
-		entity_msg.method = "entity_message"
+		entity_msg.method = "test"
 		entity_msg.parameters = "none"
 		client.stub.entity_message(None, entity_msg, None)
 	

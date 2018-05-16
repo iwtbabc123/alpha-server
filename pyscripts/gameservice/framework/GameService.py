@@ -1,6 +1,7 @@
 __author__ = 'majianfei'
 
 from proto_python import common_pb2,client_server_pb2
+from common.EntityManager import EntityManager
 
 class ClientProxy():
 	def __init__(self, rpc_channel):
@@ -20,12 +21,18 @@ class GameService(client_server_pb2.IServerService):
 	def connect_server(self, controller, request, _done):
 		rpc_channel = controller.rpc_channel
 		entityid = request.entityid
-		
+
+		create_result = False
+		if self._create_entity(entityid):
+			create_result = True
+
 		response = common_pb2.ConnectServerReply()
 		response.entityid = entityid
-		response.type = common_pb2.ConnectServerReply.CONNECTED
-		
-		#print("response.msg:%s"%response.extramsg)
+		if create_result:
+			response.type = common_pb2.ConnectServerReply.CONNECTED
+		else:
+			response.type = common_pb2.ConnectServerReply.FORBIDDEN
+
 		print("connect server response")
 		client_proxy = self._get_client_proxy(rpc_channel)
 		client_proxy.connect_reply(controller, response)
@@ -33,15 +40,16 @@ class GameService(client_server_pb2.IServerService):
 	def entity_message(self, controller, request, _done):
 		rpc_channel = controller.rpc_channel
 		entityid = request.entityid
-		msg = request.method
-		para = request.parameters
+		method = request.method
+		param = request.parameters
 		
+		self._call_entity_method(entityid, method, param)
+
 		response = common_pb2.EntityMessage()
 		response.entityid = entityid
 		response.method = "callclient"
-		response.parameters = para
-		
-		#print("response.msg:%s"%response.method)
+		response.parameters = param
+
 		print("entity message response")
 
 		client_proxy = self._get_client_proxy(rpc_channel)
@@ -50,3 +58,17 @@ class GameService(client_server_pb2.IServerService):
 	def _get_client_proxy(self, rpc_channel):
 		client_proxy = ClientProxy(rpc_channel)
 		return client_proxy
+
+	def _create_entity(self, entityid):
+		'''创建Avatar对象'''
+		from logic.Avatar import Avatar
+		entity = Avatar(entityid)
+		EntityManager().addentity(entityid, entity)
+		return True
+	
+	def _call_entity_method(self, entityid, method, param):
+		entity = EntityManager().getentity(entityid)
+		if entity:
+			getattr(entity, method)()
+
+	
