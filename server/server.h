@@ -16,6 +16,7 @@ public:
 
     void thread_socket(void* params);
     void thread_worker(void* params);
+    void thread_timer(void* params);
 
 private:
     std::string server_name_;

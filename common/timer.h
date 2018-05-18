@@ -1,13 +1,17 @@
 #ifndef __ALPHA_TIMER_H__
 #define __ALPHA_TIMER_H__
 
+#include <functional>
+
 namespace alpha
 {
+
+typedef std::function<void (int time_id)> TimerFunc;
 struct event;
 typedef struct min_heap
 {
-struct event** p;
-unsigned int n, a;
+    struct event** p;
+    unsigned int n, a;
 } min_heap_t;
 
 class Timer
@@ -22,8 +26,7 @@ public:
     *num : 如果forever为false,执行num次数。默认为1
     * return: 生成定时器的ID  
     **************************************/
-    unsigned int timer_add(int interval, void (*fun)(void*), void *arg,  bool forever = true,
-    int num = 1);
+    unsigned int timer_add(int delay, TimerFunc func,  int interval = 0);
     /***************************************  
      * description:  
      * 去掉已经加入的定时器，比如产生定时器的母体已经消亡了，在消亡之间要将其删除。  

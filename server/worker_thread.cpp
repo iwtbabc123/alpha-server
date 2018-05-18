@@ -3,8 +3,7 @@
 #include "logger.h"
 
 static PyObject*
-OnClient(PyObject* self, PyObject* args)
-{
+OnClient(PyObject* self, PyObject* args){
 	LogDebug("py->cpp call_client\n");
 
 	int sockfd;
@@ -16,6 +15,12 @@ OnClient(PyObject* self, PyObject* args)
 	MessageQueue::getInstance().MQ2C_Push(sockfd, type, str, size);
 	
 	Py_RETURN_NONE;
+}
+
+static PyObject*
+OnTimer(PyObject* self, PyObject* args){
+	int delay;
+	int repeat_sec;
 }
 
 static PyMethodDef AlphaMethods[] = {

@@ -1,6 +1,7 @@
 #include "server.h"
 #include "dispatcher.h"
 #include "worker.h"
+#include "timer.h"
 #include "thread.h"
 #include "message_queue.h"
 #include "config_reader.h"
@@ -58,4 +59,18 @@ void Server::thread_worker(void* params){
 
 	printf("new thread_worker end\n");
 
+}
+
+void Server::thread_timer(void* params){
+	printf("new thread_timer %u\n", (unsigned int)pthread_self());
+
+	Timer timer;
+	timer.timer_add(1000, timer_func, nullptr);
+
+	timer.timer_add(1500, timer_func2, nullptr, false, 2);
+
+	while(1){
+		timer.timer_process();
+		usleep(100000);
+	}
 }

@@ -29,3 +29,6 @@ class GameServer():
 		print("del_rpc_channel")
 		del self.rpc_channel_mgr[sockfd]
 	
+	def tick(self):
+		pass
+	
