@@ -1,12 +1,12 @@
 #include "server.h"
 #include "dispatcher.h"
 #include "worker.h"
-#include "timer.h"
 #include "thread.h"
 #include "message_queue.h"
 #include "config_reader.h"
 
-Server::Server():worker_uptr_(nullptr),json_uptr_(nullptr){
+Server::Server():json_uptr_(nullptr),worker_uptr_(nullptr),timer_uptr_(nullptr){
+
 }
 
 Server::~Server(){
@@ -27,6 +27,11 @@ void Server::Start(const char* server_name, const char* config_file){
 
 	std::unique_ptr<Thread> socket_uptr(new Thread(socket_func));
 	socket_uptr->start(params);
+
+	auto timer_func = std::bind(&Server::thread_timer, this, std::placeholders::_1);
+
+	std::unique_ptr<Thread> timer_uptr(new Thread(timer_func));
+	timer_uptr->start(params);
 
 	auto worker_func = std::bind(&Server::thread_worker, this, std::placeholders::_1);
 
@@ -64,13 +69,6 @@ void Server::thread_worker(void* params){
 void Server::thread_timer(void* params){
 	printf("new thread_timer %u\n", (unsigned int)pthread_self());
 
-	Timer timer;
-	timer.timer_add(1000, timer_func, nullptr);
-
-	timer.timer_add(1500, timer_func2, nullptr, false, 2);
-
-	while(1){
-		timer.timer_process();
-		usleep(100000);
-	}
+	timer_uptr_.reset(new TimerThread());
+	timer_uptr_->Start();
 }

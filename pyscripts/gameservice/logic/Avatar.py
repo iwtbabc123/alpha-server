@@ -1,4 +1,5 @@
 from common.EntityBase import EntityBase
+from common import Timer
 
 class Avatar(EntityBase):
 	'''玩家类'''
@@ -17,3 +18,7 @@ class Avatar(EntityBase):
 	
 	def test(self):
 		print("testtest")
+		Timer.addTimer(1000, self.timer_test)
+	
+	def timer_test(self):
+		print("timertest")

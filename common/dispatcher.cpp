@@ -115,7 +115,7 @@ void Dispatcher::OnRead(int fd, int fd_type){
 			RemoveEvent(fd);
 			OnFdClosed(fd);
 			LogInfo("Dispatcher::OnRead remote close fd: %d\n", fd);
-			MessageQueue::getInstance().MQ2S_Push(fd, FD_TYPE_CLOSE, NULL, bytes);
+			MessageQueue::getInstance().MQ2S_Push(fd, FD_TYPE_CLOSE, nullptr, bytes);
 		}
 		else if(bytes < 0){  //error
 			RemoveEvent(fd);

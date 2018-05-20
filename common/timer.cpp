@@ -75,7 +75,9 @@ static inline void min_heap_shift_down_(min_heap_t* s, unsigned hole_index, stru
 
 static inline void gettime(struct timeval *tm);
 
-Timer::Timer():timer_id_(1){
+Timer::Timer():timer_id_(1),func_(nullptr){
+	pthread_mutex_init(&timer_lock_, NULL);
+	
 	min_heap_ctor(&min_heap_);
 }
 
@@ -86,8 +88,8 @@ Timer::~Timer(){
 	min_heap_dtor(&min_heap_);
 }
 
-unsigned int Timer::timer_add(int delay, TimerFunc func, int interval)
-{
+unsigned int Timer::timer_add(int delay, TimerFunc func, int interval){
+	Timer_Lock();
 	struct event * ev = (struct event*) malloc(sizeof(struct event));
 	min_heap_elem_init(ev);
 	if (nullptr == ev)
@@ -103,14 +105,32 @@ unsigned int Timer::timer_add(int delay, TimerFunc func, int interval)
 	evutil_timeradd(&now, &ev_delay, &(ev->ev_timeout));
 	ev->ev_flags = (interval != 0) ? true : false;
 	
-	ev->ev_func = func;
+	ev->ev_func = func == nullptr ? func_ : func;
+	/*
+	if (func == nullptr){
+		if (func_ == nullptr){
+			Timer_Unlock();
+			return 0;
+		}
+		ev->ev_func = func_;
+	}
+	else{
+		ev->ev_func = std::move(func);
+	}
+	*/
+
+	if (ev->ev_func == nullptr){
+		Timer_Unlock();
+		return 0;
+	}
 	ev->timer_id = timer_id_++;
 	min_heap_push(&min_heap_, ev);
-
+	Timer_Unlock();
 	return ev->timer_id;
 }
 
 bool Timer::timer_remove(unsigned int timer_id){
+	Timer_Lock();
 	for (unsigned int i = 0; i < min_heap_.n; i++){
 		if (timer_id == min_heap_.p[i]->timer_id){
 			struct event * e = min_heap_.p[i];
@@ -119,10 +139,14 @@ bool Timer::timer_remove(unsigned int timer_id){
 			return true;
 		}
 	}
+	Timer_Unlock();
 	return false;
+	
 }
 
 int Timer::timer_process(){
+	Timer_Lock();
+
 	struct event *event;
 	struct timeval now;
 	while ((event = min_heap_top(&min_heap_)) != nullptr){
@@ -141,7 +165,17 @@ int Timer::timer_process(){
 		}
 	}
 
+	Timer_Unlock();
+
 	return 0;
+}
+
+void Timer::Timer_Lock(){
+	pthread_mutex_lock(&timer_lock_);
+}
+
+void Timer::Timer_Unlock(){
+	pthread_mutex_unlock(&timer_lock_);
 }
 
 void gettime(struct timeval *tm)

@@ -56,7 +56,6 @@ class TcpConnection():
 		#self.writebuff += data
 		import alphaEngine
 		alphaEngine.OnClient(self.sockfd, FD_TYPE_CLIENT, str(data, encoding = "utf8"))
-		pass
 
 	def recv_data(self,data):
 		print("recv_data")

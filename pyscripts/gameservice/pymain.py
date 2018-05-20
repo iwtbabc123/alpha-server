@@ -37,5 +37,9 @@ def OnServer(sockfd, type, data):
 			GameServer().del_rpc_channel(sockfd)
 		except Exception as e:
 			print("Exception:",e)
+	elif type == FD_TYPE_TIMER:
+		logger.debug('OnServer,type=FD_TYPE_TIMER,sock=%s'%sockfd)
+		from common import Timer
+		Timer.onTimer(sockfd)  # timerId
 
 	return 1,"success"

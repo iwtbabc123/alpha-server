@@ -1,10 +1,10 @@
 #include "worker_thread.h"
-#include "message_queue.h"
+#include "timer.h"
 #include "logger.h"
 
 static PyObject*
 OnClient(PyObject* self, PyObject* args){
-	LogDebug("py->cpp call_client\n");
+	LogDebug("py->cpp OnClient");
 
 	int sockfd;
 	int type;
@@ -19,12 +19,21 @@ OnClient(PyObject* self, PyObject* args){
 
 static PyObject*
 OnTimer(PyObject* self, PyObject* args){
+	printf("OnTimer thread_worker %u\n", (unsigned int)pthread_self());
+	LogDebug("py->cpp OnTimer");
 	int delay;
-	int repeat_sec;
+	int interval;
+	if (!PyArg_ParseTuple(args, "ii", &delay, &interval))
+		Py_RETURN_NONE;
+	LogDebug("py->cpp OnTimer delay=%d,interval=%d",delay,interval);
+	unsigned int timerid = Timer::getInstance().timer_add(delay, nullptr, interval);
+	LogDebug("py->cpp OnTimer timerid=%d",timerid);
+	return Py_BuildValue("i", timerid);
 }
 
 static PyMethodDef AlphaMethods[] = {
     {"OnClient", OnClient, METH_VARARGS, "Call client method"},
+	{"OnTimer", OnTimer, METH_VARARGS, "Call timer method"},
     {NULL, NULL, 0, NULL}
 };
 
