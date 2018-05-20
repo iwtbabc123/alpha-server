@@ -44,6 +44,10 @@ struct event{
 
 	int ev_res; /* result passed to event callback */
 	bool ev_flags;
+
+	event(){
+		ev_func = nullptr;
+	}
 };
 
 /***构造函数  ***************/
@@ -83,14 +87,16 @@ Timer::Timer():timer_id_(1),func_(nullptr){
 
 Timer::~Timer(){
 	for (unsigned int i = 0; i < min_heap_.n; i++){
-		free(min_heap_.p[i]);
+		//free(min_heap_.p[i]);
+		delete min_heap_.p[i];
 	}
 	min_heap_dtor(&min_heap_);
 }
 
 unsigned int Timer::timer_add(int delay, TimerFunc func, int interval){
 	Timer_Lock();
-	struct event * ev = (struct event*) malloc(sizeof(struct event));
+	//struct event * ev = (struct event*) malloc(sizeof(struct event));
+	struct event* ev = new event();
 	min_heap_elem_init(ev);
 	if (nullptr == ev)
 		return 0;
@@ -105,7 +111,7 @@ unsigned int Timer::timer_add(int delay, TimerFunc func, int interval){
 	evutil_timeradd(&now, &ev_delay, &(ev->ev_timeout));
 	ev->ev_flags = (interval != 0) ? true : false;
 	
-	ev->ev_func = func == nullptr ? func_ : func;
+	ev->ev_func = func != nullptr ? func : func_;
 	/*
 	if (func == nullptr){
 		if (func_ == nullptr){
@@ -118,11 +124,6 @@ unsigned int Timer::timer_add(int delay, TimerFunc func, int interval){
 		ev->ev_func = std::move(func);
 	}
 	*/
-
-	if (ev->ev_func == nullptr){
-		Timer_Unlock();
-		return 0;
-	}
 	ev->timer_id = timer_id_++;
 	min_heap_push(&min_heap_, ev);
 	Timer_Unlock();
@@ -135,7 +136,8 @@ bool Timer::timer_remove(unsigned int timer_id){
 		if (timer_id == min_heap_.p[i]->timer_id){
 			struct event * e = min_heap_.p[i];
 			min_heap_erase(&min_heap_, min_heap_.p[i]);
-			free(e);
+			//free(e);
+			delete e;
 			return true;
 		}
 	}
@@ -155,13 +157,16 @@ int Timer::timer_process(){
 			break;
 		}
 		min_heap_pop(&min_heap_);
-		event->ev_func(event->timer_id);
+		if (event->ev_func != nullptr)
+			event->ev_func(event->timer_id);
+		else
+			break;
 		if (event->ev_flags){
 			evutil_timeradd(&(event->ev_timeout), &(event->ev_interval), &(event->ev_timeout));
 			min_heap_push(&min_heap_, event);
 		}
 		else{
-			free(event);
+			//free(event);
 		}
 	}
 
@@ -198,7 +203,8 @@ void min_heap_ctor(min_heap_t* s)
 void min_heap_dtor(min_heap_t* s)
 {
 	if (s->p)
-	free(s->p);
+		delete s->p;
+	//free(s->p);
 }
 
 void min_heap_elem_init(struct event* e)

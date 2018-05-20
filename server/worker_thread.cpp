@@ -99,7 +99,6 @@ WorkerThread::WorkerThread(const char* script_path):pModule_(nullptr),pFunc_(nul
 	else{
 		LogDebug("init error\n");
 	}
-
 }
 
 WorkerThread::~WorkerThread(){

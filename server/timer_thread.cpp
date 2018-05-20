@@ -3,7 +3,7 @@
 #include "message_queue.h"
 #include "logger.h"
 
-void timer_test(int timer_id){
+void timer_func(int timer_id){
 	LogDebug("static TimerThread::OnTimer:%d",timer_id);
 	MessageQueue::getInstance().MQ2S_Push(timer_id, FD_TYPE_TIMER, nullptr, 0);
 }
@@ -20,8 +20,8 @@ void TimerThread::Start(){
 	LogDebug("TimerThread::Start");
 	//这里用auto会报错
 	//TimerFunc on_timer_func = std::bind(&TimerThread::OnTimer, this, std::placeholders::_1);
-	Timer::getInstance().set_common_func(std::bind(&TimerThread::OnTimer, this, std::placeholders::_1));
-	Timer::getInstance().timer_add(3000, nullptr, 3000);
+	Timer::getInstance().set_common_func(std::bind(timer_func, std::placeholders::_1));
+	//Timer::getInstance().timer_add(3000, nullptr, 3000);
 	while(1){
 		Timer::getInstance().timer_process();
 		usleep(100000);  //100ms
