@@ -1,11 +1,10 @@
 #include "worker_thread.h"
-#include "message_queue.h"
+#include "timer.h"
 #include "logger.h"
 
 static PyObject*
-OnClient(PyObject* self, PyObject* args)
-{
-	LogDebug("py->cpp call_client\n");
+OnClient(PyObject* self, PyObject* args){
+	LogDebug("py->cpp OnClient");
 
 	int sockfd;
 	int type;
@@ -18,8 +17,23 @@ OnClient(PyObject* self, PyObject* args)
 	Py_RETURN_NONE;
 }
 
+static PyObject*
+OnTimer(PyObject* self, PyObject* args){
+	printf("OnTimer thread_worker %u\n", (unsigned int)pthread_self());
+	LogDebug("py->cpp OnTimer");
+	int delay;
+	int interval;
+	if (!PyArg_ParseTuple(args, "ii", &delay, &interval))
+		Py_RETURN_NONE;
+	LogDebug("py->cpp OnTimer delay=%d,interval=%d",delay,interval);
+	unsigned int timerid = Timer::getInstance().timer_add(delay, nullptr, interval);
+	LogDebug("py->cpp OnTimer timerid=%d",timerid);
+	return Py_BuildValue("i", timerid);
+}
+
 static PyMethodDef AlphaMethods[] = {
     {"OnClient", OnClient, METH_VARARGS, "Call client method"},
+	{"OnTimer", OnTimer, METH_VARARGS, "Call timer method"},
     {NULL, NULL, 0, NULL}
 };
 
@@ -85,7 +99,6 @@ WorkerThread::WorkerThread(const char* script_path):pModule_(nullptr),pFunc_(nul
 	else{
 		LogDebug("init error\n");
 	}
-
 }
 
 WorkerThread::~WorkerThread(){
