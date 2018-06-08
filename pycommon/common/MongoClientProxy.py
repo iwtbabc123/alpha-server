@@ -38,12 +38,12 @@ class MongoClientProxy:
 
 		if optype == FIND_DOC_OP:
 			fields = None
-			query = oprequest.query
+			query = json.loads(oprequest.query)
 			fieldsdict = json.loads(oprequest.fields)
 			fields = fieldsdict.get("f",None)
 			kwargs = {}
 			try:
-				findresult = list(collection.find(query, fields, 0, int(oprequest.limit),True, False, Flase, False, **kwargs))
+				findresult = list(collection.find(query, fields, 0, int(oprequest.limit),True, False, False, False, **kwargs))
 			except Exception as e:
 				print("collection find error,",e)
 				return False,None

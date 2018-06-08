@@ -29,22 +29,24 @@ class DBServerProxy():
 	def on_channel_disconnected(self, rpc_channel):
 		self.connected = False
 	
-	def db_find_doc(self, db, connection, query, fields = None,limit = 1, callback = None):
+	def db_find_doc(self, db, collection, query, fields = None,limit = 1, callback = None):
 		request = self.findrequest
 		request.Clear()
 		request.db = db
 		request.collection = collection
-		request.query = query
+		request.query = json.dumps(query)
+		request.fields = json.dumps({}) if fields == None else json.dumps(fields)
+		request.limit = limit
 		if callback != None:
 			request.callback_id = 1
 		self.dbstub.db_find_doc(None, request)
 	
-	def db_update_doc(self, db, connection, query, doc, callback = None, upset = True, multi = False):
+	def db_update_doc(self, db, collection, query, doc, callback = None, upset = True, multi = False):
 		request = self.updaterequest
 		request.Clear()
 		request.db = db
 		request.collection = collection
-		request.query = query
+		request.query = json.dumps(query)
 		request.doc = json.dumps(doc)
 		request.upset = upset
 		request.multi = multi
@@ -52,11 +54,11 @@ class DBServerProxy():
 			request.callback_id = 1
 		self.dbstub.db_update_doc(None, request)
 	
-	def db_insert_doc(self, db, connection, doc, callback = None):
+	def db_insert_doc(self, db, collection, doc, callback = None):
 		request = self.insertrequest
 		request.Clear()
 		request.db = db
-		request.collection = connection
+		request.collection = collection
 		request.doc = json.dumps(doc)
 		if callback != None:
 			request.callback_id = 1
@@ -79,13 +81,23 @@ class MyClientService(client_mongo_pb2.IDBClientService):
 		print("entity_message:entityid=%s,method=%s"%(request.entityid,request.method))
 	
 	def db_find_doc_reply(self, rpc_controller, request, done):
-		pass
+		print("db_find_doc_reply:",request.status)
+		#print("db_find_doc_reply:",request.docs)
+		#result = [json.loads(x) for x in request.docs]
+		for x in request.docs:
+			print("db_find_doc_reply:",x)
+		#result = [json.loads(x) for x in request.docs]
+		time.sleep(3)
+
 
 	def db_update_doc_reply(self, rpc_controller, request, done):
-		pass
+		print("db_update_doc_reply")
 	
 	def db_insert_doc_reply(self, rpc_controller, request, done):
-		pass
+		print("db_insert_doc_reply")
+		time.sleep(3)
+		server_proxy.db_find_doc('test_db', 'test_collection',{"name":"mjf"})
+
 
 if __name__ == "__main__":
 	client = TcpClient(LISTEN_IP, LISTEN_PORT, client_mongo_pb2.IDBService_Stub, MyClientService)

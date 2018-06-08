@@ -4,6 +4,8 @@ from proto_python import common_pb2,client_mongo_pb2
 from common.EntityManager import EntityManager
 from common.MongoClientProxy import MongoClientProxy
 from defines import *
+import json
+from bson.json_util import dumps
 
 class DBClientProxy():
 	'''db server reply to client'''
@@ -28,7 +30,7 @@ class DBClientProxy():
 		self.findreply.status = status
 		if docs != None:
 			for doc in docs:
-				self.findreply.docs.append(doc)
+				self.findreply.docs.append(dumps(doc))
 		self.client_stub.db_find_doc_reply(None, self.findreply)
 
 	def db_update_doc_reply(self, callback_id, status):
@@ -62,7 +64,7 @@ class DBService(client_mongo_pb2.IDBService):
 		'''db操作的reply'''
 		print("db_reply_cb:",optype, status)
 		if optype == FIND_DOC_OP:
-			clientproxy.db_find_doc_reply(oprequest.callback_id, sttus, result)
+			clientproxy.db_find_doc_reply(oprequest.callback_id, status, result)
 		elif optype == UPDATE_DOC_OP:
 			clientproxy.db_update_doc_reply(oprequest.callback_id, status)
 		elif optype == INSERT_DOC_OP:

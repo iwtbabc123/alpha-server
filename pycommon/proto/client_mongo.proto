@@ -10,7 +10,7 @@ message FindDocRequest {
 	string collection = 3;
 	string query = 4;
 	string fields = 5;
-	string limit = 6;
+	int32 limit = 6;
 }
 
 message UpdateDocRequest {
@@ -31,7 +31,7 @@ message InsertDocRequest {
 message FindDocReply {
 	int32 callback_id = 1;
 	bool status = 2;
-	string docs = 3;
+	repeated string docs = 3;
 }
 
 message UpdateDocReply {
