@@ -56,7 +56,7 @@ class DBServerProxy():
 		request = self.insertrequest
 		request.Clear()
 		request.db = db
-		request.collection = collection
+		request.collection = connection
 		request.doc = json.dumps(doc)
 		if callback != None:
 			request.callback_id = 1

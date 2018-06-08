@@ -22,7 +22,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='client_mongo.proto',
   package='alpha.server',
   syntax='proto3',
-  serialized_pb=_b('\n\x12\x63lient_mongo.proto\x12\x0c\x61lpha.server\x1a\x0c\x63ommon.proto\"s\n\x0e\x46indDocRequest\x12\x13\n\x0b\x63\x61llback_id\x18\x01 \x01(\x05\x12\n\n\x02\x64\x62\x18\x02 \x01(\t\x12\x12\n\ncollection\x18\x03 \x01(\t\x12\r\n\x05query\x18\x04 \x01(\t\x12\x0e\n\x06\x66ields\x18\x05 \x01(\t\x12\r\n\x05limit\x18\x06 \x01(\t\"c\n\x10UpdateDocRequest\x12\x13\n\x0b\x63\x61llback_id\x18\x01 \x01(\x05\x12\n\n\x02\x64\x62\x18\x02 \x01(\t\x12\x12\n\ncollection\x18\x03 \x01(\t\x12\r\n\x05query\x18\x04 \x01(\t\x12\x0b\n\x03\x64oc\x18\x05 \x01(\t\"T\n\x10InsertDocRequest\x12\x13\n\x0b\x63\x61llback_id\x18\x01 \x01(\x05\x12\n\n\x02\x64\x62\x18\x02 \x01(\t\x12\x12\n\ncollection\x18\x03 \x01(\t\x12\x0b\n\x03\x64oc\x18\x04 \x01(\t\"A\n\x0c\x46indDocReply\x12\x13\n\x0b\x63\x61llback_id\x18\x01 \x01(\x05\x12\x0e\n\x06status\x18\x02 \x01(\x08\x12\x0c\n\x04\x64ocs\x18\x03 \x01(\t\"5\n\x0eUpdateDocReply\x12\x13\n\x0b\x63\x61llback_id\x18\x01 \x01(\x05\x12\x0e\n\x06status\x18\x02 \x01(\x08\"H\n\x0eInsertDocReply\x12\x13\n\x0b\x63\x61llback_id\x18\x01 \x01(\x05\x12\x0e\n\x06status\x18\x02 \x01(\x08\x12\x11\n\tinsert_id\x18\x03 \x01(\t2\xe4\x02\n\nIDBService\x12H\n\x0e\x63onnect_server\x12\".alpha.server.ConnectServerRequest\x1a\x12.alpha.server.Void\x12\x41\n\x0e\x65ntity_message\x12\x1b.alpha.server.EntityMessage\x1a\x12.alpha.server.Void\x12?\n\x0b\x64\x62_find_doc\x12\x1c.alpha.server.FindDocRequest\x1a\x12.alpha.server.Void\x12\x43\n\rdb_update_doc\x12\x1e.alpha.server.UpdateDocRequest\x1a\x12.alpha.server.Void\x12\x43\n\rdb_insert_doc\x12\x1e.alpha.server.InsertDocRequest\x1a\x12.alpha.server.Void2\xf3\x02\n\x10IDBClientService\x12\x45\n\rconnect_reply\x12 .alpha.server.ConnectServerReply\x1a\x12.alpha.server.Void\x12\x41\n\x0e\x65ntity_message\x12\x1b.alpha.server.EntityMessage\x1a\x12.alpha.server.Void\x12\x43\n\x11\x64\x62_find_doc_reply\x12\x1a.alpha.server.FindDocReply\x1a\x12.alpha.server.Void\x12G\n\x13\x64o_update_doc_reply\x12\x1c.alpha.server.UpdateDocReply\x1a\x12.alpha.server.Void\x12G\n\x13\x64o_insert_doc_reply\x12\x1c.alpha.server.InsertDocReply\x1a\x12.alpha.server.VoidB\x03\x90\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n\x12\x63lient_mongo.proto\x12\x0c\x61lpha.server\x1a\x0c\x63ommon.proto\"s\n\x0e\x46indDocRequest\x12\x13\n\x0b\x63\x61llback_id\x18\x01 \x01(\x05\x12\n\n\x02\x64\x62\x18\x02 \x01(\t\x12\x12\n\ncollection\x18\x03 \x01(\t\x12\r\n\x05query\x18\x04 \x01(\t\x12\x0e\n\x06\x66ields\x18\x05 \x01(\t\x12\r\n\x05limit\x18\x06 \x01(\t\"c\n\x10UpdateDocRequest\x12\x13\n\x0b\x63\x61llback_id\x18\x01 \x01(\x05\x12\n\n\x02\x64\x62\x18\x02 \x01(\t\x12\x12\n\ncollection\x18\x03 \x01(\t\x12\r\n\x05query\x18\x04 \x01(\t\x12\x0b\n\x03\x64oc\x18\x05 \x01(\t\"T\n\x10InsertDocRequest\x12\x13\n\x0b\x63\x61llback_id\x18\x01 \x01(\x05\x12\n\n\x02\x64\x62\x18\x02 \x01(\t\x12\x12\n\ncollection\x18\x03 \x01(\t\x12\x0b\n\x03\x64oc\x18\x04 \x01(\t\"A\n\x0c\x46indDocReply\x12\x13\n\x0b\x63\x61llback_id\x18\x01 \x01(\x05\x12\x0e\n\x06status\x18\x02 \x01(\x08\x12\x0c\n\x04\x64ocs\x18\x03 \x01(\t\"5\n\x0eUpdateDocReply\x12\x13\n\x0b\x63\x61llback_id\x18\x01 \x01(\x05\x12\x0e\n\x06status\x18\x02 \x01(\x08\"H\n\x0eInsertDocReply\x12\x13\n\x0b\x63\x61llback_id\x18\x01 \x01(\x05\x12\x0e\n\x06status\x18\x02 \x01(\x08\x12\x11\n\tinsert_id\x18\x03 \x01(\t2\xe4\x02\n\nIDBService\x12H\n\x0e\x63onnect_server\x12\".alpha.server.ConnectServerRequest\x1a\x12.alpha.server.Void\x12\x41\n\x0e\x65ntity_message\x12\x1b.alpha.server.EntityMessage\x1a\x12.alpha.server.Void\x12?\n\x0b\x64\x62_find_doc\x12\x1c.alpha.server.FindDocRequest\x1a\x12.alpha.server.Void\x12\x43\n\rdb_update_doc\x12\x1e.alpha.server.UpdateDocRequest\x1a\x12.alpha.server.Void\x12\x43\n\rdb_insert_doc\x12\x1e.alpha.server.InsertDocRequest\x1a\x12.alpha.server.Void2\xf3\x02\n\x10IDBClientService\x12\x45\n\rconnect_reply\x12 .alpha.server.ConnectServerReply\x1a\x12.alpha.server.Void\x12\x41\n\x0e\x65ntity_message\x12\x1b.alpha.server.EntityMessage\x1a\x12.alpha.server.Void\x12\x43\n\x11\x64\x62_find_doc_reply\x12\x1a.alpha.server.FindDocReply\x1a\x12.alpha.server.Void\x12G\n\x13\x64\x62_update_doc_reply\x12\x1c.alpha.server.UpdateDocReply\x1a\x12.alpha.server.Void\x12G\n\x13\x64\x62_insert_doc_reply\x12\x1c.alpha.server.InsertDocReply\x1a\x12.alpha.server.VoidB\x03\x90\x01\x01\x62\x06proto3')
   ,
   dependencies=[common__pb2.DESCRIPTOR,])
 
@@ -484,8 +484,8 @@ _IDBCLIENTSERVICE = _descriptor.ServiceDescriptor(
     options=None,
   ),
   _descriptor.MethodDescriptor(
-    name='do_update_doc_reply',
-    full_name='alpha.server.IDBClientService.do_update_doc_reply',
+    name='db_update_doc_reply',
+    full_name='alpha.server.IDBClientService.db_update_doc_reply',
     index=3,
     containing_service=None,
     input_type=_UPDATEDOCREPLY,
@@ -493,8 +493,8 @@ _IDBCLIENTSERVICE = _descriptor.ServiceDescriptor(
     options=None,
   ),
   _descriptor.MethodDescriptor(
-    name='do_insert_doc_reply',
-    full_name='alpha.server.IDBClientService.do_insert_doc_reply',
+    name='db_insert_doc_reply',
+    full_name='alpha.server.IDBClientService.db_insert_doc_reply',
     index=4,
     containing_service=None,
     input_type=_INSERTDOCREPLY,

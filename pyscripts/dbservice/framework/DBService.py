@@ -52,22 +52,23 @@ class DBClientProxy():
 
 class DBService(client_mongo_pb2.IDBService):
 	'''rpc service'''
-	def __init__(self):
+	def __init__(self, mongoconfig):
 		self.clientproxies = {}
 		self.mongoconfig = mongoconfig
 		self.mongoproxy = MongoClientProxy(self.mongoconfig)
 		self.mongoproxy.connect_mongo()
 
-	def _db_reply_cb(self, optype, oprequest, clientproxy, result):
+	def _db_reply_cb(self, optype, oprequest, clientproxy, status, result):
 		'''db操作的reply'''
-		if oprequest <= 0:
-			return
+		print("db_reply_cb:",optype, status)
 		if optype == FIND_DOC_OP:
-			clientproxy.do_find_doc_reply()
+			clientproxy.db_find_doc_reply(oprequest.callback_id, sttus, result)
 		elif optype == UPDATE_DOC_OP:
-			clientproxy.do_update_doc_reply()
+			clientproxy.db_update_doc_reply(oprequest.callback_id, status)
 		elif optype == INSERT_DOC_OP:
-			clientproxy.do_insert_doc_reply()
+			clientproxy.db_insert_doc_reply(oprequest.callback_id, status)
+		else:
+			print("db reply cb error:",optype)
 
 	def connect_server(self, controller, request, _done):
 		rpc_channel = controller.rpc_channel
@@ -107,10 +108,25 @@ class DBService(client_mongo_pb2.IDBService):
 		client_proxy.entity_message(controller, response)
 
 	def db_find_doc(self, controller, request, _done):
-		pass
+		print("db_find_doc")
+		rpc_channel = controller.rpc_channel
+		clientproxy = self._get_client_proxy(rpc_channel)
+		self._do_mongoclient_op(FIND_DOC_OP, request, clientproxy)
+	
+	def db_update_doc(self, controller, request, _done):
+		print("db_update_doc")
+		rpc_channel = controller.rpc_channel
+		clientproxy = self._get_client_proxy(rpc_channel)
+		self._do_mongoclient_op(UPDATE_DOC_OP, request, clientproxy)
+	
+	def db_insert_doc(self, controller, request, _done):
+		print("db_insert_doc")
+		rpc_channel = controller.rpc_channel
+		clientproxy = self._get_client_proxy(rpc_channel)
+		self._do_mongoclient_op(INSERT_DOC_OP, request, clientproxy)
 
 	def _do_mongoclient_op(self, optype, oprequest, clientproxy):
-		self.mongoproxy.do_db_op(optype, oprequest, clientproxy,)
+		self.mongoproxy.do_db_op(optype, oprequest, clientproxy,lambda status, result:self._db_reply_cb(optype, oprequest, clientproxy, status, result))
 
 	def _get_client_proxy(self, rpc_channel):
 		client_proxy = DBClientProxy(rpc_channel)

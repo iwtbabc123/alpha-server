@@ -1,6 +1,6 @@
 from pymongo import MongoClient
-from bson
 from defines import *
+import json
 
 class MongoClientProxy:
 	def __init__(self, mongoconfig):
@@ -32,11 +32,14 @@ class MongoClientProxy:
 
 	def _do_db_op(self, optype, oprequest, clientproxy):
 		db_name = oprequest.db
-		query = oprequest.query
+		collection_name = oprequest.collection
+
+		collection = self.mongoclient[db_name][collection_name]
 
 		if optype == FIND_DOC_OP:
 			fields = None
-			fieldsdict = oprequest.fields
+			query = oprequest.query
+			fieldsdict = json.loads(oprequest.fields)
 			fields = fieldsdict.get("f",None)
 			kwargs = {}
 			try:
@@ -50,17 +53,18 @@ class MongoClientProxy:
 			upsert = oprequest.upsert
 			multi = oprequest.multi
 			try:
-				connection.update(query, doc, upsert = upsert, multi = multi)
+				collection.update(query, doc, upsert = upsert, multi = multi)
 			except Exception as e:
-				print("connection update error,",e)
+				print("collection update error,",e)
 				return False, None
 			return True, None
 		elif optype == INSERT_DOC_OP:
-			doc = oprequest.doc
+			doc = json.loads(oprequest.doc)
+			print("INSERT_DOC_OP:",json.dumps(doc))
 			try:
 				ret_id = collection.insert(doc)
 			except Exception as e:
-				print("connection insert error,",e)
+				print("collection insert error,",e)
 				return False, None
 			return True, ret_id
 		else:

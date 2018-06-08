@@ -14,7 +14,10 @@ logger = logger.get_logger('pymain')
 def init():
 	'''初始化python server'''
 	print("py init")
-	a = DBServer()
+	try:
+		a = DBServer()
+	except Exception as e:
+		print("init Exception:",e)
 
 
 def OnServer(sockfd, type, data):

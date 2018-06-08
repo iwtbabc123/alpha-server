@@ -68,7 +68,7 @@ service IDBClientService {
 
 	rpc db_find_doc_reply(FindDocReply) returns (Void);
 
-	rpc do_update_doc_reply(UpdateDocReply) returns (Void);
+	rpc db_update_doc_reply(UpdateDocReply) returns (Void);
 
-	rpc do_insert_doc_reply(InsertDocReply) returns (Void);
+	rpc db_insert_doc_reply(InsertDocReply) returns (Void);
 }

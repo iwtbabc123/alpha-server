@@ -3,12 +3,15 @@ from rpc.RpcChannelMgr import RpcChannelMgr
 from rpc.TcpConnection import TcpConnection
 from rpc.RpcChannel import RpcChannel
 from singleton import *
+import json
 
 @singleton
 class DBServer():
 	'''python逻辑层服务器'''
 	def __init__(self):
-		self.db_service = DBService()
+		self.config = self.load_json_config()
+		self.mongoconfig = self.config['db1']['mongo']
+		self.db_service = DBService(self.mongoconfig)
 		self.rpc_channel_mgr = RpcChannelMgr()
 	
 	def add_rpc_channel(self,sockfd):
@@ -32,3 +35,16 @@ class DBServer():
 	def tick(self):
 		pass
 	
+	def load_json_config(self):
+		import os
+		print("dir:",os.getcwd())
+
+		f = open("config.json","r")
+		text = f.read()
+		f.close()
+
+		content = json.loads(text)
+		print("load_json_config",content)
+		return content
+
+
