@@ -12,39 +12,40 @@ class DBServerProxy():
 	def on_channel_disconnected(self, rpc_channel):
 		self.connected = False
 	
-	def db_find_doc(self, db, connection, query, fields = None,limit = 1, callback = None):
+	def db_find_doc(self, db, collection, query, fields = None,limit = 1, callback = None):
 		request = self.findrequest
 		request.Clear()
 		request.db = db
 		request.collection = collection
-		request.query = query
+		request.query = json.dumps(query)
+		request.fields = json.dumps({}) if fields == None else json.dumps(fields)
+		request.limit = limit
 		if callback != None:
 			request.callback_id = 1
 		self.dbstub.db_find_doc(None, request)
 	
-	def db_update_doc(self, db, connection, query, doc, callback = None, upsert = True, multi = False):
+	def db_update_doc(self, db, collection, query, doc, callback = None, upsert = True, multi = False):
 		request = self.updaterequest
 		request.Clear()
 		request.db = db
 		request.collection = collection
-		request.query = query
-		request.doc = doc
-		request.upsert = upsert
-		request.multi = multi
+		request.query = json.dumps(query)
+		request.doc = json.dumps(doc)
+		#request.upsert = upsert
+		#request.multi = multi
 		if callback != None:
 			request.callback_id = 1
 		self.dbstub.db_update_doc(None, request)
 	
-	def db_insert_doc(self, db, connection, doc, callback = None):
+	def db_insert_doc(self, db, collection, doc, callback = None):
 		request = self.insertrequest
 		request.Clear()
 		request.db = db
 		request.collection = collection
-		request.doc = doc
+		request.doc = json.dumps(doc)
 		if callback != None:
 			request.callback_id = 1
 		self.dbstub.db_insert_doc(None, request)
-
 
 class DBClient(client_mongo_pb2.IDBClientService):
 	'''接收db发过来的消息'''
