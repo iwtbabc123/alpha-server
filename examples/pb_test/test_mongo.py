@@ -10,6 +10,8 @@ from pb_test.tcp_client import TcpClient
 import asyncore
 import time
 import json
+from bson.json_util import dumps,loads
+import copy
 
 LISTEN_IP = "127.0.0.1"
 LISTEN_PORT = 6000
@@ -41,15 +43,15 @@ class DBServerProxy():
 			request.callback_id = 1
 		self.dbstub.db_find_doc(None, request)
 	
-	def db_update_doc(self, db, collection, query, doc, callback = None, upset = True, multi = False):
+	def db_update_doc(self, db, collection, query, doc, callback = None, upsert = True, multi = False):
 		request = self.updaterequest
 		request.Clear()
 		request.db = db
 		request.collection = collection
 		request.query = json.dumps(query)
 		request.doc = json.dumps(doc)
-		request.upset = upset
-		request.multi = multi
+		#request.upsert = upsert
+		#request.multi = multi
 		if callback != None:
 			request.callback_id = 1
 		self.dbstub.db_update_doc(None, request)
@@ -86,9 +88,21 @@ class MyClientService(client_mongo_pb2.IDBClientService):
 		#result = [json.loads(x) for x in request.docs]
 		for x in request.docs:
 			print("db_find_doc_reply:",x)
-		#result = [json.loads(x) for x in request.docs]
-		time.sleep(3)
+			print("typeof x:",type(x))
+			#result = [json.loads(x) for x in request.docs]
+			time.sleep(3)
+			doc = json.loads(x)
+			query = {'_id':doc['_id']}
+			#del doc['_id']
+			fields = copy.deepcopy(doc)
+			fields['update'] = 'new'
+			fields['age'] = 27
 
+			print("db_update:",json.dumps(query))
+			print("bd_udpate:",json.dumps(fields))
+
+			server_proxy.db_update_doc('test_db','test_collection',query,{'$set':fields})
+			break
 
 	def db_update_doc_reply(self, rpc_controller, request, done):
 		print("db_update_doc_reply")

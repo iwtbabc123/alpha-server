@@ -1,6 +1,6 @@
 from pymongo import MongoClient
 from defines import *
-import json
+from bson.json_util import loads,dumps
 
 class MongoClientProxy:
 	def __init__(self, mongoconfig):
@@ -38,8 +38,8 @@ class MongoClientProxy:
 
 		if optype == FIND_DOC_OP:
 			fields = None
-			query = json.loads(oprequest.query)
-			fieldsdict = json.loads(oprequest.fields)
+			query = loads(oprequest.query)
+			fieldsdict = loads(oprequest.fields)
 			fields = fieldsdict.get("f",None)
 			kwargs = {}
 			try:
@@ -49,18 +49,22 @@ class MongoClientProxy:
 				return False,None
 			return True, findresult
 		elif optype == UPDATE_DOC_OP:
-			doc = oprequest.doc
-			upsert = oprequest.upsert
-			multi = oprequest.multi
+			query = loads(oprequest.query)
+			doc = loads(oprequest.doc)
+			if '_id' in doc:
+				del doc['_id']
+			print("UPDATE_DOC_OP:",dumps(doc))
+			#upsert = oprequest.upsert
+			#multi = oprequest.multi
 			try:
-				collection.update(query, doc, upsert = upsert, multi = multi)
+				collection.update(query, doc, upsert = True, multi = True)
 			except Exception as e:
 				print("collection update error,",e)
 				return False, None
 			return True, None
 		elif optype == INSERT_DOC_OP:
-			doc = json.loads(oprequest.doc)
-			print("INSERT_DOC_OP:",json.dumps(doc))
+			doc = loads(oprequest.doc)
+			print("INSERT_DOC_OP:",dumps(doc))
 			try:
 				ret_id = collection.insert(doc)
 			except Exception as e:

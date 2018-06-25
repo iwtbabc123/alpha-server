@@ -22,14 +22,14 @@ class DBServerProxy():
 			request.callback_id = 1
 		self.dbstub.db_find_doc(None, request)
 	
-	def db_update_doc(self, db, connection, query, doc, callback = None, upset = True, multi = False):
+	def db_update_doc(self, db, connection, query, doc, callback = None, upsert = True, multi = False):
 		request = self.updaterequest
 		request.Clear()
 		request.db = db
 		request.collection = collection
 		request.query = query
 		request.doc = doc
-		request.upset = upset
+		request.upsert = upsert
 		request.multi = multi
 		if callback != None:
 			request.callback_id = 1

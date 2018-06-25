@@ -107,7 +107,7 @@ WorkerThread::~WorkerThread(){
 
 void WorkerThread::OnServer(SP_MessageData q){
 	pResult_ = PyObject_CallMethod(pModule_, "OnServer", "iis#", q->Sockfd(), q->Type(), q->Buffer(),q->Size());
-	if (pResult_ != NULL){
+	if (pResult_ != nullptr){
 		char* ret;
 		int result = 0;
 
@@ -122,5 +122,6 @@ void WorkerThread::OnServer(SP_MessageData q){
 	}
 	else{
 		LogDebug("pResult_ error\n");
+		PyErr_Print();
 	}
 }
