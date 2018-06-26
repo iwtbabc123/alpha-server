@@ -31,7 +31,7 @@ def OnServer(sockfd, type, data):
 	elif type == FD_TYPE_READ:
 		logger.debug('OnServer,type=FD_TYPE_READ,sock=%s'%sockfd)
 		try:
-			DBServer().recv_data(sockfd, data)
+			DBServer().handle_rpc_channel(sockfd, data)
 		except Exception as e:
 			print("Exception:",e)
 	elif type == FD_TYPE_CLOSE:

@@ -7,7 +7,7 @@ sys.path.insert(0, join(abspath(dirname(__file__)), '../gateservice'))
 
 import logger
 from defines import *
-from GateServer import GateServer
+from framework.GateServer import GateServer
 
 logger = logger.get_logger('pymain')
 
@@ -27,7 +27,7 @@ def OnServer(sockfd, type, data):
 			print("Exception:",e)
 	elif type == FD_TYPE_READ:
 		try:
-			GateServer().recv_data(sockfd, data)
+			GateServer().handle_rpc_channel(sockfd, data)
 		except Exception as e:
 			print("Exception:",e)
 	elif type == FD_TYPE_CLOSE:
