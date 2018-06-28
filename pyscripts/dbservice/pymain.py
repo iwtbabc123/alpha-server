@@ -1,20 +1,16 @@
 import sys
 from os.path import abspath, join, dirname
 sys.path.insert(0, join(abspath(dirname(__file__)), '../../pycommon'))
-sys.path.insert(0, join(abspath(dirname(__file__)), '../../pycommon/library'))
-sys.path.insert(0, join(abspath(dirname(__file__)), '../../pycommon/proto_python'))
-sys.path.insert(0, join(abspath(dirname(__file__)), '../dbservice'))
-
-#import logger
-#from defines import *
-from framework.DBServer import DBServer
 import pymainbase
+pymainbase.import_dir(['library','proto_python','../pyscripts/dbservice'])
+
+from framework.DBServer import DBServer
 
 #logger = logger.get_logger('pymain')
 
-def init():
+def init(server_name):
 	'''初始化python server'''
-	print("py init")
+	print("py init",server_name)
 	try:
 		a = DBServer()
 	except Exception as e:

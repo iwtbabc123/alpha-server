@@ -60,7 +60,7 @@ PyInit_alphaEngine(void)
 }
 #endif
 
-WorkerThread::WorkerThread(const char* script_path):pModule_(nullptr),pFunc_(nullptr),pResult_(nullptr){
+WorkerThread::WorkerThread(const char* server_name, const char* script_path):pModule_(nullptr),pFunc_(nullptr),pResult_(nullptr){
 	
 	PyImport_AppendInittab("alphaEngine", PyInit_alphaEngine);
 	//call py
@@ -92,7 +92,7 @@ WorkerThread::WorkerThread(const char* script_path):pModule_(nullptr),pFunc_(nul
 		LogDebug("init module <%s.pymain>: error\n", script_path);
 	}
 
-	pResult_ = PyObject_CallMethod(pModule_, "init", "");
+	pResult_ = PyObject_CallMethod(pModule_, "init", "s#", server_name, strlen(server_name));
 	if(pResult_ != nullptr){
 		LogDebug("init success\n");
 	}

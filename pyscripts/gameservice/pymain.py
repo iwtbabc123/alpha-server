@@ -1,20 +1,15 @@
 import sys
 from os.path import abspath, join, dirname
 sys.path.insert(0, join(abspath(dirname(__file__)), '../../pycommon'))
-sys.path.insert(0, join(abspath(dirname(__file__)), '../../pycommon/library'))
-sys.path.insert(0, join(abspath(dirname(__file__)), '../../pycommon/proto_python'))
-sys.path.insert(0, join(abspath(dirname(__file__)), '../gameservice'))
-
-#import logger
-#from defines import *
-from framework.GameServer import GameServer
 import pymainbase
+pymainbase.import_dir(['library','proto_python','../pyscripts/gameservice'])
 
-def init():
+from framework.GameServer import GameServer
+
+def init(server_name):
 	'''初始化python server'''
-	print("py init")
+	print("py init",server_name)
 	a = GameServer()
-
 
 def OnServer(sockfd, type, data):
 	serverobj = GameServer()
