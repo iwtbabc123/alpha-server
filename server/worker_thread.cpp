@@ -3,15 +3,16 @@
 #include "logger.h"
 
 static PyObject*
-OnClient(PyObject* self, PyObject* args){
-	LogDebug("py->cpp OnClient");
-
+OnSocket(PyObject* self, PyObject* args){
 	int sockfd;
 	int type;
 	char* str;
 	int size;
-	if (!PyArg_ParseTuple(args, "iis#", &sockfd, &type, &str, &size))
+	if (!PyArg_ParseTuple(args, "iis#", &sockfd, &type, &str, &size)){
+		PyErr_Print();
 		Py_RETURN_NONE;
+	}
+	LogDebug("py->cpp OnSocket");
 	MessageQueue::getInstance().MQ2C_Push(sockfd, type, str, size);
 	
 	Py_RETURN_NONE;
@@ -32,21 +33,6 @@ OnTimer(PyObject* self, PyObject* args){
 }
 
 static PyObject*
-OnServer(PyObject* self, PyObject* args){
-	LogDebug("py->cpp OnClient");
-
-	int sockfd;
-	int type;
-	char* str;
-	int size;
-	if (!PyArg_ParseTuple(args, "iis#", &sockfd, &type, &str, &size))
-		Py_RETURN_NONE;
-	MessageQueue::getInstance().MQ2C_Push(sockfd, type, str, size);
-	
-	Py_RETURN_NONE;
-}
-
-static PyObject*
 OnConnectServer(PyObject* self, PyObject* args){
 	char* ip;
 	int size;
@@ -59,10 +45,9 @@ OnConnectServer(PyObject* self, PyObject* args){
 }
 
 static PyMethodDef AlphaMethods[] = {
-    {"OnClient", OnClient, METH_VARARGS, "Call client method"},
+	{"OnSocket", OnSocket, METH_VARARGS, "Call socket method"},
 	{"OnTimer", OnTimer, METH_VARARGS, "Call timer method"},
 	{"OnConnectServer", OnConnectServer, METH_VARARGS, "Call connect server method"},
-	{"OnServer", OnServer, METH_VARARGS, "Call server method"},
     {NULL, NULL, 0, NULL}
 };
 

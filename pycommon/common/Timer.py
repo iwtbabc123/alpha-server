@@ -1,20 +1,20 @@
 __author__ = "majianfei"
 
-import alphaEngine
+import py2cpp
 
 class TimerManager(object):
 	def __init__(self):
 		self.timers = {}
 	
 	def addTimer(self, proxy):
-		timerID = alphaEngine.OnTimer(proxy.delay, 0)
+		timerID = py2cpp.OnTimer(proxy.delay, 0)
 		#timerID = py2cpp.add_timer(proxy.delay, 0)
 		self.timers[timerID] = proxy
 		print("addtimer===>%d,%d"%(len(self.timers), timerID))
 		return timerID
 	
 	def addRepeatTimer(self, proxy, repeat_sec):
-		timerID = alphaEngine.OnTimer(proxy.delay, repeat_sec)
+		timerID = py2cpp.OnTimer(proxy.delay, repeat_sec)
 		self.timers[timerID] = proxy
 		return timerID
 	
