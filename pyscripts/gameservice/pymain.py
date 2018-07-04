@@ -9,7 +9,7 @@ from framework.GameServer import GameServer
 def init(server_name):
 	'''初始化python server'''
 	print("py init",server_name)
-	a = GameServer()
+	a = GameServer(server_name)
 
 def OnServer(sockfd, type, data):
 	serverobj = GameServer()

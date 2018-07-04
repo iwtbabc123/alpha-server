@@ -6,8 +6,8 @@ import json
 @singleton
 class DBServer(CommonServerBase):
 	'''python逻辑层服务器'''
-	def __init__(self):
-		super().__init__()
+	def __init__(self, server_name):
+		super().__init__(server_name)
 		self.config = self.load_json_config()
 		self.mongoconfig = self.config['db1']['mongo']
 		pb_service = DBService(self.mongoconfig)

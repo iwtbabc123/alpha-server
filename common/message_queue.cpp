@@ -43,7 +43,7 @@ void MessageQueue::MQ2S_Push(int fd, int type, const char* buffer, int size){
 	MQ2S_Unlock();
 }
 
-	SP_MessageData MessageQueue::MQ2S_Pop(){
+SP_MessageData MessageQueue::MQ2S_Pop(){
 
 	MQ2S_Lock();
 	LogDebug("mq2s_pop before");
@@ -80,7 +80,7 @@ void MessageQueue::MQ2C_Push(int fd, int type, char* data, int size){
 	MQ2C_Unlock();
 }
 
-	SP_MessageData MessageQueue::MQ2C_Pop(){
+SP_MessageData MessageQueue::MQ2C_Pop(){
 	LogDebug("MessageQueue::mq2c_Pop\n");
 	MQ2C_Lock();
 

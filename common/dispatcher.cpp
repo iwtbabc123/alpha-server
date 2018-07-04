@@ -51,30 +51,9 @@ void Dispatcher::StartServer(uint16_t port){
 	LogInfo("Dispatcher::StartServer:listen fd:%d\n",fd);
 	
 	InitEventFd();
-	InitTimer();
+	//InitTimer();
 
 	ev_run(loop_, 0);
-}
-
-/*
-*此进程作为client连接某个server,
-*eg: gate->game,game->db.
-*/
-void Dispatcher::ConnectIpPort(const char* ip, uint16_t port){
-	LogDebug("Dispatcher::ConnectIpPort ip=%s,port=%d\n", ip, port);
-
-	bool flag = true;
-
-	do{
-		int conn_fd = netlib_socket();
-		if (conn_fd < 0){
-			LogError("Dispatcher::ConnectIpPort socket error");
-			continue;
-		}
-		flag = false;
-		SP_Connector connector(new Connector(conn_fd, ip, port));
-		connector_map_[conn_fd] = connector;
-	}while(flag);
 }
 
 void Dispatcher::OnAccept(int fd){
@@ -95,7 +74,7 @@ void Dispatcher::OnAccept(int fd){
 
 	ev_init(conn_ev, r_w_cb);
 	AddEvent(conn_ev, conn_fd, EV_READ);
-	AddChannel(conn_ev, conn_fd);
+	AddChannel(conn_fd, CHANNEL_TYPE_CLIENT, conn_ev);
 
 	MessageQueue::getInstance().MQ2S_Push(conn_fd, FD_TYPE_ACCEPT, nullptr, 0);
 
@@ -106,7 +85,7 @@ void Dispatcher::OnAccept(int fd){
 void Dispatcher::OnRead(int fd, int fd_type){
 	LogDebug("Dispatcher::OnRead:%d\n", fd);
 
-	if (fd_type == FD_TYPE_ACCEPT){
+	if (fd_type == FD_TYPE_CLIENT){
 		char buffer[READ_BUF_SIZE] = {0};
 
 		int bytes = netlib_recv(fd, buffer, READ_BUF_SIZE);
@@ -127,15 +106,21 @@ void Dispatcher::OnRead(int fd, int fd_type){
 			memcpy(socket_data, buffer, bytes);
 			//std::string str_buf(buffer);
 			LogInfo("Dispatcher::OnRead %d bytes\n", bytes);
-			MessageQueue::getInstance().MQ2S_Push(fd, FD_TYPE_READ, socket_data, bytes);
+			MessageQueue::getInstance().MQ2S_Push(fd, FD_TYPE_CLIENT, socket_data, bytes);
 		}
+	}
+	else if(fd_type == FD_TYPE_SERVER){
+
+	}
+	else if(fd_type == FD_TYPE_CONNECT){
+
 	}
 }
 
 void Dispatcher::OnWrite(int fd, int fd_type){
 	LogDebug("EpollServer::OnWrite:%d\n",fd);
 	
-	if (fd_type == FD_TYPE_ACCEPT){
+	if (fd_type == FD_TYPE_CLIENT){
 		auto channel = this->GetChannel(fd);
 		if (channel == nullptr)
 		{
@@ -176,6 +161,13 @@ void Dispatcher::OnWrite(int fd, int fd_type){
 
 		UpdateEvent(fd, events, channel);
 	}
+	else if (fd_type == FD_TYPE_SERVER){
+
+	}
+}
+
+void Dispatcher::OnConnect(int fd, int fd_type){
+
 }
 
 void Dispatcher::OnEventfd(int efd)
@@ -218,6 +210,12 @@ void Dispatcher::OnEventfd(int efd)
 		}
 		else if(mq->Type() == FD_TYPE_SERVER){
 
+		}
+		else if(mq->Type() == FD_TYPE_CONNECT){
+			int port = mq->Sockfd();
+			string ip(mq->Buffer());
+
+			this->ConnectIpPort(ip.c_str(), port);
 		}
 		/*
 		else if (mq->type == MQ_TYPE_BROADCAST)
@@ -307,10 +305,11 @@ void Dispatcher::OnEventfd(int efd)
 		}
 	}
 }
-
+/*
 void Dispatcher::OnTimer(){
 	ConnectOtherServer();
 }
+*/
 
 int Dispatcher::AddEvent(struct ev_io* ev, int fd, short events){
 	ev_io_set(ev, fd, events);
@@ -366,15 +365,31 @@ SP_Channel Dispatcher::GetChannel(int fd)
 	}
 }
 
-void Dispatcher::AddChannel(struct ev_io* io_watcher, int fd)
+void Dispatcher::AddChannel(int fd, int channel_type, struct ev_io* io_watcher)
 {
-	auto iter = channel_map_.lower_bound(fd);
-	if (iter != channel_map_.end() && iter->first == fd){
-		LogWarning("AddChannel error, channel exists\n");
+	if (channel_type == CHANNEL_TYPE_CLIENT){
+		auto iter = channel_map_.lower_bound(fd);
+		if (iter != channel_map_.end() && iter->first == fd){
+			LogWarning("AddChannel error, channel exists\n");
+		}
+		else{
+			SP_Channel channel(new Channel(fd, channel_type, io_watcher));
+			channel_map_[fd] = channel;
+		}
+	}
+	else if (channel_type == CHANNEL_TYPE_CONNECT){
+		auto iter = connector_map_.lower_bound(fd);
+		if (iter != connector_map_.end() && iter->first == fd){
+			LogWarning("AddChannel error, channel exists\n");
+		}
+		else{
+			SP_Channel channel(new Channel(fd, channel_type, io_watcher));
+			connector_map_[fd] = channel;
+		}
 	}
 	else{
-		SP_Channel channel(new Channel(fd, io_watcher));
-		channel_map_[fd] = channel;
+
+		return;
 	}
 }
 
@@ -406,13 +421,59 @@ void Dispatcher::InitEventFd(){
 	ev_init(efd_watcher, eventfd_cb);
 	AddEvent(efd_watcher, eventfd_, EV_READ);
 }
-
+/*
 void Dispatcher::InitTimer(){
 	struct ev_timer* timeout_watcher = (struct ev_timer*) malloc(sizeof(struct ev_timer));
 	ev_timer_init(timeout_watcher, init_timeout_cb, 1, 3); //1s后开始，3s的循环间隔
 	ev_timer_start(loop_, timeout_watcher);
 }
+*/
 
+/*
+*此进程作为client连接某个server,
+*eg: gate->game,game->db.
+*/
+void Dispatcher::ConnectIpPort(const char* ip, uint16_t port){
+	LogDebug("Dispatcher::ConnectIpPort ip=%s,port=%d\n", ip, port);
+
+	bool connect_immediately = true;
+	int ev_flags = EV_READ;
+	do{
+		int conn_fd = netlib_socket();
+		if (conn_fd < 0){
+			LogError("Dispatcher::ConnectIpPort socket error");
+			continue;
+		}
+
+		netlib_setnonblocking(conn_fd);
+
+		int ret = netlib_connect(conn_fd, ip, port);
+		if (ret == 0){
+			LogDebug("Dispatcher::ConnectIpPort socket immediately");
+		}else if(ret == -1 && errno == EINPROGRESS){
+			connect_immediately = false;
+			ev_flags = EV_READ | EV_WRITE;
+			LogDebug("Dispatcher::ConnectIpPort socket later");
+		}
+		else{
+			close(conn_fd);
+			LogError("Dispatcher::ConnectIpPort socket error2");
+			break;
+		}
+
+		struct ev_io* conn_ev = (struct ev_io*) malloc(sizeof(struct ev_io));
+		if (conn_ev == nullptr){
+			LogError("malloc error in OnTryConnect\n");
+			break;
+		}
+
+		ev_init(conn_ev, connector_cb);
+		AddEvent(conn_ev, conn_fd, ev_flags);
+
+		AddChannel(conn_fd, CHANNEL_TYPE_CONNECT, conn_ev);
+	}while(false);
+}
+/*
 void Dispatcher::ConnectOtherServer(){
 	for (auto itr = connector_map_.begin(); itr != connector_map_.end(); ++itr){
 		SP_Connector connector = itr->second;
@@ -441,6 +502,7 @@ void Dispatcher::ConnectOtherServer(){
 		}
 	}
 }
+*/
 
 void Dispatcher::accept_cb(struct ev_loop* loop, struct ev_io* watcher, int revents){
 	int fd = watcher->fd;
@@ -462,10 +524,10 @@ void Dispatcher::r_w_cb(struct ev_loop* loop, struct ev_io* watcher, int revents
 	}
 
 	if (EV_READ & revents){
-		Dispatcher::getInstance().OnRead(fd, FD_TYPE_ACCEPT);
+		Dispatcher::getInstance().OnRead(fd, FD_TYPE_CLIENT);
 	}
 	if (EV_WRITE & revents){
-		Dispatcher::getInstance().OnWrite(fd, FD_TYPE_ACCEPT);
+		Dispatcher::getInstance().OnWrite(fd, FD_TYPE_CLIENT);
 	}
 }
 
@@ -489,18 +551,23 @@ void Dispatcher::connector_cb(struct ev_loop* loop, struct ev_io* watcher, int r
 		//LogError("error event in read or write\n");
 		return;
 	}
-
-	if (EV_READ & revents){
+	//noblocking socket connect success
+	if (!(EV_READ & revents) && (EV_WRITE & revents)){
+		LogDebug("connector_cb success %d\n", fd);
 		Dispatcher::getInstance().OnRead(fd, FD_TYPE_CONNECT);
 	}
+
+	if (EV_READ & revents){
+		Dispatcher::getInstance().OnRead(fd, FD_TYPE_SERVER);
+	}
 	if (EV_WRITE & revents){
-		Dispatcher::getInstance().OnWrite(fd, FD_TYPE_CONNECT);
+		Dispatcher::getInstance().OnWrite(fd, FD_TYPE_SERVER);
 	}
 }
-
+/*
 void Dispatcher::init_timeout_cb(struct ev_loop* loop, struct ev_timer* watcher, int revents){
 	//LogDebug("init_timeout_cb \n");
 	Dispatcher::getInstance().OnTimer();
 }
-
+*/
 }

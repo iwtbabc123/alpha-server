@@ -10,7 +10,7 @@
 namespace alpha{
 
 typedef std::shared_ptr<Channel> SP_Channel;
-typedef std::shared_ptr<Connector> SP_Connector;
+//typedef std::shared_ptr<Connector> SP_Connector;
 
 class Dispatcher{
 public:
@@ -26,8 +26,9 @@ public:
     void OnAccept(int fd);
     void OnRead(int fd, int fd_type);
     void OnWrite(int fd, int fd_type);
+    void OnConnect(int fd, int fd_type);
     void OnEventfd(int fd);
-    void OnTimer();
+    //void OnTimer();
 public:
     int Eventfd(){return eventfd_;}
 
@@ -37,7 +38,7 @@ public:
     static void eventfd_cb(struct ev_loop* loop, struct ev_io* watcher, int revents);
     //连接其它server的socket
     static void connector_cb(struct ev_loop* loop, struct ev_io* watcher, int revents);
-    static void init_timeout_cb(struct ev_loop* loop, struct ev_timer* watcher, int revents);
+    //static void init_timeout_cb(struct ev_loop* loop, struct ev_timer* watcher, int revents);
 
 private:
     Dispatcher();
@@ -53,14 +54,14 @@ private:
 
     SP_Channel GetChannel(int fd);
 
-    void AddChannel(ev_io* io_watcher, int fd);
+    void AddChannel(int fd, int channel_type, ev_io* io_watcher);
 
     void OnFdClosed(int fd);  //RemoveChannel
 
 private:
     void InitEventFd();
-    void InitTimer();
-    void ConnectOtherServer();
+    //void InitTimer();
+    //void ConnectOtherServer();
 
 private:
     struct ev_loop* loop_;
@@ -68,9 +69,10 @@ private:
 
     int eventfd_;
     typedef std::map<int, SP_Channel> ChannelMap;
-    typedef std::map<int, SP_Connector> ConnectorMap;
+    //typedef std::map<int, SP_Connector> ConnectorMap;
     ChannelMap channel_map_;
-    ConnectorMap connector_map_;
+    ChannelMap connector_map_;
+    //ConnectorMap connector_map_;
 
 };
 

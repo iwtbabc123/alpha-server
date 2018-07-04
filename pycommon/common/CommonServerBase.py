@@ -4,9 +4,10 @@ from rpc.RpcChannel import RpcChannel
 
 class CommonServerBase():
 	"""通用的服务器基类"""
-	def __init__(self):
+	def __init__(self, server_name = None):
 		self.rpc_channel_mgr = RpcChannelMgr()
 		self.pb_service = None
+		self.server_name = server_name
 	
 	def set_pb_service(self, pb_service):
 		self.pb_service = pb_service

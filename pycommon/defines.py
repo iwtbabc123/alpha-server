@@ -1,13 +1,9 @@
-
-FD_TYPE_ACCEPT		= 1
-FD_TYPE_CONNECT		= 2
-FD_TYPE_READ		= 3
-FD_TYPE_CLOSE		= 4
-
-FD_TYPE_CLIENT		= 11
-FD_TYPE_SERVER		= 12
-FD_TYPE_TIMER		= 13
-
+FD_TYPE_ACCEPT		= 1  #accept client socket
+FD_TYPE_CLIENT		= 2  #read or write client socket
+FD_TYPE_SERVER		= 3  #read or write server socket
+FD_TYPE_CONNECT		= 4  #connect to server
+FD_TYPE_CLOSE		= 5  #close socket
+FD_TYPE_TIMER		= 6
 
 #mongodb operation
 FIND_DOC_OP = 1

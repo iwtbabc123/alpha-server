@@ -22,16 +22,17 @@ namespace alpha{
 #define LOG_ERROR		0x08  //LOG_ERROR
 #define LOG_ALL			0xff  //LOG_ALL
 
-//to worker fd
+//fd type
 #define FD_TYPE_ACCEPT		1  //accept client socket
-#define FD_TYPE_CONNECT		2  //connect to server
-#define FD_TYPE_READ		3  //read socket data
-#define FD_TYPE_CLOSE		4  //close socket
+#define FD_TYPE_CLIENT		2  //read or write client socket
+#define FD_TYPE_SERVER		3  //read or write server socket
+#define FD_TYPE_CONNECT		4  //connect to server
+#define FD_TYPE_CLOSE		5  //close socket
+#define FD_TYPE_TIMER		6
 
-//to socket fd
-#define FD_TYPE_CLIENT	11
-#define FD_TYPE_SERVER	12
-#define FD_TYPE_TIMER	13
+//channel type
+#define CHANNEL_TYPE_CLIENT		101
+#define CHANNEL_TYPE_CONNECT	102
 
 }
 

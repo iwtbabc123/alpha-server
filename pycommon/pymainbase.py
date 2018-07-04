@@ -20,7 +20,7 @@ def OnServer(sockfd, type, data, serverobj):
 			serverobj.add_rpc_channel(sockfd)
 		except Exception as e:
 			print("Exception:",e)
-	elif type == FD_TYPE_READ:
+	elif type == FD_TYPE_CLIENT:
 		logger.debug('OnServer,type=FD_TYPE_READ,sock=%s'%sockfd)
 		try:
 			serverobj.handle_rpc_channel(sockfd, data)

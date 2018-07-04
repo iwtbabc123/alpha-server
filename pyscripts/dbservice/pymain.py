@@ -12,7 +12,7 @@ def init(server_name):
 	'''初始化python server'''
 	print("py init",server_name)
 	try:
-		a = DBServer()
+		a = DBServer(server_name)
 	except Exception as e:
 		print("init Exception:",e)
 
