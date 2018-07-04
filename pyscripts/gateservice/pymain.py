@@ -2,7 +2,7 @@ import sys
 from os.path import abspath, join, dirname
 sys.path.insert(0, join(abspath(dirname(__file__)), '../../pycommon'))
 import pymainbase
-pymainbase.import_dir(['library','proto_python','../pyscripts/gameservice'])
+pymainbase.import_dir(['library','proto_python','../pyscripts/gateservice'])
 
 from framework.GateServer import GateServer
 
@@ -13,7 +13,7 @@ def init(server_name):
 	'''初始化python server'''
 	print("py init",server_name)
 	gate_server = GateServer(server_name)
-	gate_serverserver.connect_server()
+	#gate_serverserver.connect_server()
 
 
 def OnServer(sockfd, type, data):

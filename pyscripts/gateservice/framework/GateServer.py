@@ -30,7 +30,7 @@ class GateServer(CommonServerBase):
 		print("load_json_config",server_config)
 
 		connect_server_name = server_config['connecter_server']
-		if connect_server_name == '' || connect_server_name.lower() == 'none':
+		if connect_server_name == '' or connect_server_name.lower() == 'none':
 			return True
 
 		connect_server_list = server_config[connect_server_name].split(',')
