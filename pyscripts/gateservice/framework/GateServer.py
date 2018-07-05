@@ -1,6 +1,7 @@
 from framework.GateService import GateService
 from common.CommonServerBase import CommonServerBase
 from singleton import *
+import json
 import py2cpp
 
 @singleton
@@ -29,20 +30,19 @@ class GateServer(CommonServerBase):
 			return False
 		print("load_json_config",server_config)
 
-		connect_server_name = server_config['connecter_server']
+		connect_server_name = server_config['connect_server']
 		if connect_server_name == '' or connect_server_name.lower() == 'none':
 			return True
 
-		connect_server_list = server_config[connect_server_name].split(',')
+		connect_server_list = json_config[connect_server_name].split(',')
 
-		import py2cpp
 		for s_name in connect_server_list:
 			s_config = json_config.get(s_name)
 			if s_config is None:
 				return False
 			print("load_connect_server_config", s_config)
 
-			_ip = s_config['ip']
+			_ip = s_config['ip'] if s_config['ip'] != '0.0.0.0' else '127.0.0.1'
 			_port = s_config['port']
 			py2cpp.OnConnectServer(_ip, _port)
 		return True

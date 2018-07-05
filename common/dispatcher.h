@@ -5,7 +5,7 @@
 #include <map>
 #include "util.h"
 #include "channel.h"
-#include "connector.h"
+//#include "connector.h"
 
 namespace alpha{
 
@@ -26,7 +26,7 @@ public:
     void OnAccept(int fd);
     void OnRead(int fd, int fd_type);
     void OnWrite(int fd, int fd_type);
-    void OnConnect(int fd, int fd_type);
+    void OnConnectSuccess(int fd);
     void OnEventfd(int fd);
     //void OnTimer();
 public:
@@ -50,13 +50,15 @@ private:
 
 	int UpdateEvent(int fd, short events, SP_Channel channel);
 
-	void RemoveEvent(int fd);
+	void RemoveEvent(int fd, int fd_type);
 
-    SP_Channel GetChannel(int fd);
+    SP_Channel GetChannel(int fd, int fd_type);
 
-    void AddChannel(int fd, int channel_type, ev_io* io_watcher);
+    void AddChannel(int fd, int fd_type, ev_io* io_watcher);
 
-    void OnFdClosed(int fd);  //RemoveChannel
+    void OnFdClosed(int fd, int fd_type);  //RemoveChannel
+
+    //ChannelMap& _GetChannelMap(int fd_type);
 
 private:
     void InitEventFd();
@@ -73,6 +75,9 @@ private:
     ChannelMap channel_map_;
     ChannelMap connector_map_;
     //ConnectorMap connector_map_;
+
+private:
+    Dispatcher::ChannelMap& _GetChannelMap(int fd_type);
 
 };
 

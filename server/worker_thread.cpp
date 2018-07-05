@@ -24,8 +24,10 @@ OnTimer(PyObject* self, PyObject* args){
 	LogDebug("py->cpp OnTimer");
 	int delay;
 	int interval;
-	if (!PyArg_ParseTuple(args, "ii", &delay, &interval))
+	if (!PyArg_ParseTuple(args, "ii", &delay, &interval)){
+		PyErr_Print();
 		Py_RETURN_NONE;
+	}
 	LogDebug("py->cpp OnTimer delay=%d,interval=%d",delay,interval);
 	unsigned int timerid = Timer::getInstance().timer_add(delay, nullptr, interval);
 	LogDebug("py->cpp OnTimer timerid=%d",timerid);
@@ -38,8 +40,10 @@ OnConnectServer(PyObject* self, PyObject* args){
 	int size;
 	int port;
 	if (!PyArg_ParseTuple(args, "is#", &port, &ip, &size)){
+		PyErr_Print();
 		Py_RETURN_NONE;
 	}
+	LogDebug("py->cpp OnConnectServer ip=%s,size=%d,port=%d",ip,size,port);
 	MessageQueue::getInstance().MQ2C_Push(port, FD_TYPE_CONNECT, ip, size);
 	Py_RETURN_NONE;
 }

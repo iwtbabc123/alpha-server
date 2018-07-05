@@ -65,8 +65,9 @@ void MessageQueue::MQ2C_Push(int fd, int type, char* data, int size){
 	LogDebug("MessageQueue::mq2c_Push:%d,%d,%s,%d\n",fd, type ,data, size);
 	MQ2C_Lock();
 	
-	char* buffer = (char*)malloc(sizeof(char) * size);
+	char* buffer = (char*)malloc(sizeof(char) * size+1);
 	memcpy(buffer, data, size);
+	buffer[size] = '\n';
 
 	SP_MessageData queue(new MessageData(fd, type, buffer, size));
 	mq2c_.push_back(queue);

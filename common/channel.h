@@ -13,7 +13,7 @@ namespace alpha{
 
 class Channel{
 public:
-	Channel(int fd, int channel_type, struct ev_io* io_watcher);
+	Channel(int fd, int fd_type, struct ev_io* io_watcher);
 	virtual ~Channel();
 
 	int Fd(){return fd_;}
@@ -31,9 +31,14 @@ public:
 		return queue;
 	}
 
+	void SetSuccess(bool success){
+		success_ = success;
+	}
+
 private:
 	int fd_;
-	int channel_type_;
+	int fd_type_;
+	bool success_;
 protected:
 	struct ev_io* io_watcher_;
 

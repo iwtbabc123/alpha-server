@@ -29,11 +29,6 @@ namespace alpha{
 #define FD_TYPE_CONNECT		4  //connect to server
 #define FD_TYPE_CLOSE		5  //close socket
 #define FD_TYPE_TIMER		6
-
-//channel type
-#define CHANNEL_TYPE_CLIENT		101
-#define CHANNEL_TYPE_CONNECT	102
-
 }
 
 #endif

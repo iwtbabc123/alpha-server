@@ -8,6 +8,7 @@ def OnTimer(delay, interval):
 	return alphaEngine.OnTimer(delay, interval)
 
 def OnConnectServer(ip, port):
+	print("OnConnectServer:",ip,port)
 	alphaEngine.OnConnectServer(port, ip)
 
 def OnClient(sockfd, data):

@@ -74,7 +74,7 @@ void Dispatcher::OnAccept(int fd){
 
 	ev_init(conn_ev, r_w_cb);
 	AddEvent(conn_ev, conn_fd, EV_READ);
-	AddChannel(conn_fd, CHANNEL_TYPE_CLIENT, conn_ev);
+	AddChannel(conn_fd, FD_TYPE_CLIENT, conn_ev);
 
 	MessageQueue::getInstance().MQ2S_Push(conn_fd, FD_TYPE_ACCEPT, nullptr, 0);
 
@@ -91,14 +91,14 @@ void Dispatcher::OnRead(int fd, int fd_type){
 		int bytes = netlib_recv(fd, buffer, READ_BUF_SIZE);
 		if (bytes == 0){  //close
 			//remote close fd actively
-			RemoveEvent(fd);
-			OnFdClosed(fd);
+			RemoveEvent(fd,fd_type);
+			OnFdClosed(fd,fd_type);
 			LogInfo("Dispatcher::OnRead remote close fd: %d\n", fd);
 			MessageQueue::getInstance().MQ2S_Push(fd, FD_TYPE_CLOSE, nullptr, bytes);
 		}
 		else if(bytes < 0){  //error
-			RemoveEvent(fd);
-			OnFdClosed(fd);
+			RemoveEvent(fd, fd_type);
+			OnFdClosed(fd, fd_type);
 			LogInfo("Dispatcher::OnRead fd error\n");
 		}
 		else{
@@ -112,16 +112,13 @@ void Dispatcher::OnRead(int fd, int fd_type){
 	else if(fd_type == FD_TYPE_SERVER){
 
 	}
-	else if(fd_type == FD_TYPE_CONNECT){
-
-	}
 }
 
 void Dispatcher::OnWrite(int fd, int fd_type){
 	LogDebug("EpollServer::OnWrite:%d\n",fd);
 	
 	if (fd_type == FD_TYPE_CLIENT){
-		auto channel = this->GetChannel(fd);
+		auto channel = this->GetChannel(fd, fd_type);
 		if (channel == nullptr)
 		{
 			LogError("EpollServer::OnWrite channel null\n");
@@ -166,8 +163,9 @@ void Dispatcher::OnWrite(int fd, int fd_type){
 	}
 }
 
-void Dispatcher::OnConnect(int fd, int fd_type){
-
+void Dispatcher::OnConnectSuccess(int conn_fd){
+	
+	MessageQueue::getInstance().MQ2S_Push(conn_fd, FD_TYPE_CONNECT, nullptr, 0);
 }
 
 void Dispatcher::OnEventfd(int efd)
@@ -190,7 +188,7 @@ void Dispatcher::OnEventfd(int efd)
 		if (mq == nullptr)
 			break;
 		if (mq->Type() == FD_TYPE_CLIENT){
-			auto channel = GetChannel(mq->Sockfd());
+			auto channel = GetChannel(mq->Sockfd(), mq->Type());
 
 			if (channel == nullptr)
 			{
@@ -217,87 +215,6 @@ void Dispatcher::OnEventfd(int efd)
 
 			this->ConnectIpPort(ip.c_str(), port);
 		}
-		/*
-		else if (mq->type == MQ_TYPE_BROADCAST)
-		{
-			Broadcast* broadcast = mq->broad;
-			list<uint32_t>& uniqids = broadcast->uniqids;
-			while(!uniqids.empty())
-			{
-				uint32_t uniqid = uniqids.front();
-				uniqids.pop_front();
-				//same with MQ_TYPE_PACK
-				int fd = GetFdFromUniqid(uniqid);
-				Channel* channel = GetChannel(fd);
-
-				if (channel == NULL)
-				{
-					LogWarning("EpollServer::OnEventfd channel null\n");
-					continue;
-				}
-
-				channel->OutBuffer().Write(broadcast->pack->GetBuffer(), broadcast->pack->GetTotalLength());
-
-				//update channel
-				int events = EV_READ;
-				if (channel->OutBuffer().GetWriteOffset() > 0)
-				{
-					events |= EV_WRITE;
-				}
-				UpdateEvent(fd, events, channel);
-			}
-
-			delete broadcast->pack;
-			broadcast->pack = NULL;
-			delete broadcast;
-			broadcast = NULL;
-			delete mq;
-			mq = NULL;
-
-		}
-		else if (mq->type == MQ_TYPE_TIMER)
-		{
-			struct ev_timer* timeout_watcher = (struct ev_timer*) malloc(sizeof(struct ev_timer));
-			
-			TimerStruct* timer_struct = mq->timer;
-
-			Timer* timer = new Timer(timer_struct->timerid, timer_struct->repeat_sec, timeout_watcher);
-			timer_map_.insert(pair<uint32_t, Timer*>(1, timer));
-
-			ev_timer_init(timeout_watcher, timeout_cb, timer_struct->delay, timer_struct->repeat_sec);
-			ev_timer_start(loop_, timeout_watcher);
-			//LogWarning("EpollServer::OnEventfd timer: %d,%d,%d\n", timer_struct->timerid, timer_struct->delay, timer_struct->repeat_sec);
-		}
-		else if (mq->type == MQ_TYPE_CONNECT)
-		{
-			Connector* connector = GetUserfulConnector();
-			if (connector == NULL)
-			{
-				//LOG_ERROR("EpollServer::OnEventfd connector null");
-				delete mq->pack;
-				delete mq;
-				continue;
-			}
-
-			int fd = connector->Fd();
-
-			connector->OutBuffer().Write(mq->pack->GetBuffer(), mq->pack->GetTotalLength());
-
-			delete mq->pack;
-			mq->pack = NULL;
-			delete mq;
-			mq = NULL;
-
-			//update channel
-			int events = EV_READ;
-			if (connector->OutBuffer().GetWriteOffset() > 0)
-			{
-				events |= EV_WRITE;  //then, 
-			}
-			
-			UpdateEvent(fd, events, connector);
-		}
-		*/
 		else
 		{
 			LogError("EpollServer::OnEventfd type error:%d\n",mq->Type());
@@ -318,14 +235,12 @@ int Dispatcher::AddEvent(struct ev_io* ev, int fd, short events){
 	return 0;
 }
 
-int Dispatcher::UpdateEvent(int fd, short events, SP_Channel channel)
-{	
+int Dispatcher::UpdateEvent(int fd, short events, SP_Channel channel){
 	//LogDebug("UpdateEvent:%d,%d\n", fd, events);
 
 	struct ev_io* io_watcher = channel->GetIoWatcher();
 
-	if (io_watcher == nullptr)
-	{
+	if (io_watcher == nullptr){
 		LogError("UpdateEvent error: io_watcher null\n");
 		return -1;
 	}
@@ -337,10 +252,10 @@ int Dispatcher::UpdateEvent(int fd, short events, SP_Channel channel)
 	return 0;
 }
 
-void Dispatcher::RemoveEvent(int fd){
+void Dispatcher::RemoveEvent(int fd, int channel_type){
 	LogDebug("RemoveEvent: %d\n",fd);
 
-	auto channel = this->GetChannel(fd);
+	auto channel = this->GetChannel(fd, channel_type);
 	if(channel == nullptr){
 		return;
 	}
@@ -354,10 +269,11 @@ void Dispatcher::RemoveEvent(int fd){
 }
 
 
-SP_Channel Dispatcher::GetChannel(int fd)
-{
-	auto iter = channel_map_.find(fd);
-	if (iter == channel_map_.end()){
+SP_Channel Dispatcher::GetChannel(int fd, int fd_type){
+	auto& curr_map = _GetChannelMap(fd_type);
+
+	auto iter = curr_map.find(fd);
+	if (iter == curr_map.end()){
 		return nullptr;
 	}
 	else{
@@ -365,47 +281,45 @@ SP_Channel Dispatcher::GetChannel(int fd)
 	}
 }
 
-void Dispatcher::AddChannel(int fd, int channel_type, struct ev_io* io_watcher)
+void Dispatcher::AddChannel(int fd, int fd_type, struct ev_io* io_watcher)
 {
-	if (channel_type == CHANNEL_TYPE_CLIENT){
-		auto iter = channel_map_.lower_bound(fd);
-		if (iter != channel_map_.end() && iter->first == fd){
-			LogWarning("AddChannel error, channel exists\n");
-		}
-		else{
-			SP_Channel channel(new Channel(fd, channel_type, io_watcher));
-			channel_map_[fd] = channel;
-		}
-	}
-	else if (channel_type == CHANNEL_TYPE_CONNECT){
-		auto iter = connector_map_.lower_bound(fd);
-		if (iter != connector_map_.end() && iter->first == fd){
-			LogWarning("AddChannel error, channel exists\n");
-		}
-		else{
-			SP_Channel channel(new Channel(fd, channel_type, io_watcher));
-			connector_map_[fd] = channel;
-		}
+	auto& curr_map = _GetChannelMap(fd_type);
+
+	auto iter = curr_map.lower_bound(fd);
+	if (iter != curr_map.end() && iter->first == fd){
+		LogWarning("AddChannel error, channel exists\n");
 	}
 	else{
-
-		return;
+		SP_Channel channel(new Channel(fd, fd_type, io_watcher));
+		curr_map[fd] = channel;
 	}
 }
 
-void Dispatcher::OnFdClosed(int fd){
-	LogDebug("OnFdClosed %d\n", fd);
-	ChannelMap::iterator iter = channel_map_.find(fd);
-	if (iter != channel_map_.end()){
+void Dispatcher::OnFdClosed(int fd, int fd_type){
+	LogDebug("OnFdClosed fd=%d,fd_type=%d\n", fd, fd_type);
+
+	auto& curr_map = _GetChannelMap(fd_type);
+
+	ChannelMap::iterator iter = curr_map.find(fd);
+	if (iter != curr_map.end()){
 		//Channel* channel = iter->second;
-		channel_map_.erase(fd);
+		curr_map.erase(fd);
 
 		//delete channel;
 		//channel = nullptr;
 	}
+}
 
-		//let py to remove this socket
-		//MessageQueue::getSingleton().MQ2S_Push_Close(uniqid);
+Dispatcher::ChannelMap& Dispatcher::_GetChannelMap(int fd_type){
+	if (fd_type != FD_TYPE_CLIENT && fd_type != FD_TYPE_SERVER){
+		LogError("_GetChannelMap fd_type error fd_type=%d\n",fd_type);
+	}
+
+	if (fd_type == FD_TYPE_CLIENT){
+		return channel_map_;
+	}else{
+		return connector_map_;
+	}
 }
 
 void Dispatcher::InitEventFd(){
@@ -450,6 +364,7 @@ void Dispatcher::ConnectIpPort(const char* ip, uint16_t port){
 		int ret = netlib_connect(conn_fd, ip, port);
 		if (ret == 0){
 			LogDebug("Dispatcher::ConnectIpPort socket immediately");
+			OnConnectSuccess(conn_fd);
 		}else if(ret == -1 && errno == EINPROGRESS){
 			connect_immediately = false;
 			ev_flags = EV_READ | EV_WRITE;
@@ -470,7 +385,7 @@ void Dispatcher::ConnectIpPort(const char* ip, uint16_t port){
 		ev_init(conn_ev, connector_cb);
 		AddEvent(conn_ev, conn_fd, ev_flags);
 
-		AddChannel(conn_fd, CHANNEL_TYPE_CONNECT, conn_ev);
+		AddChannel(conn_fd, FD_TYPE_SERVER, conn_ev);
 	}while(false);
 }
 /*
@@ -554,7 +469,7 @@ void Dispatcher::connector_cb(struct ev_loop* loop, struct ev_io* watcher, int r
 	//noblocking socket connect success
 	if (!(EV_READ & revents) && (EV_WRITE & revents)){
 		LogDebug("connector_cb success %d\n", fd);
-		Dispatcher::getInstance().OnRead(fd, FD_TYPE_CONNECT);
+		Dispatcher::getInstance().OnConnectSuccess(fd);
 	}
 
 	if (EV_READ & revents){

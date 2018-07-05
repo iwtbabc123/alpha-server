@@ -12,8 +12,11 @@ def init(server_name):
 	global gate_server
 	'''初始化python server'''
 	print("py init",server_name)
-	gate_server = GateServer(server_name)
-	#gate_serverserver.connect_server()
+	try:
+		gate_server = GateServer(server_name)
+		gate_server.connect_server()
+	except Exception as e:
+		print("Exception:",e)
 
 
 def OnServer(sockfd, type, data):

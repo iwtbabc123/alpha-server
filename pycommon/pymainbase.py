@@ -36,3 +36,5 @@ def OnServer(sockfd, type, data, serverobj):
 		logger.debug('OnServer,type=FD_TYPE_TIMER,sock=%s'%sockfd)
 		from common import Timer
 		Timer.onTimer(sockfd)  # timerId
+	elif type == FD_TYPE_CONNECT:  # 连接其它服务器成功
+		logger.debug('OnServer,type=FD_TYPE_CONNECT,sock=%s'%sockfd)

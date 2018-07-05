@@ -3,11 +3,18 @@
 
 namespace alpha{
 
-Channel::Channel(int fd, int channel_type, struct ev_io* io_watcher)
-		:fd_(fd),channel_type_(channel_type),io_watcher_(io_watcher){
+Channel::Channel(int fd, int fd_type, struct ev_io* io_watcher):fd_(fd),fd_type_(fd_type),io_watcher_(io_watcher){
 	mq_.clear();
+	if (fd_type == FD_TYPE_CLIENT){
+		success_ = true;
+	}
+	else if(fd_type == FD_TYPE_SERVER){
+		success_ = false;
+	}
+	else{
+		success_ = false;
+	}
 }
-
 
 Channel::~Channel(){
 	LogDebug("Channel::~Channel\n");
