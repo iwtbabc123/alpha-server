@@ -7,8 +7,8 @@ BIN_HOME = ../bin
 
 LDFLAGS = -L/usr/local/lib
 
-MOBILE_INCL = -I../common -I/usr/include/python3.6m
-MOBILE_LIB = -lpthread -lev -lpython3.6m
+MOBILE_INCL = -I../common -I/usr/include/python3.5m
+MOBILE_LIB = -lpthread -lev -lpython3.5m
 
 CCFLAGS += $(MOBILE_INCL)
 LDFLAGS += $(MOBILE_LIB)

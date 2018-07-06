@@ -140,8 +140,6 @@ void Dispatcher::OnWrite(int fd, int fd_type){
 			if (ret == -1)  //TODO,发送不成功要重新发送
 			{
 				LogWarning("netlib_send -1\n");
-				//
-				//UpdateEvent(fd, EPOLLIN | EPOLLOUT);
 				events |= EV_WRITE;
 				break;
 			}
@@ -164,7 +162,14 @@ void Dispatcher::OnWrite(int fd, int fd_type){
 }
 
 void Dispatcher::OnConnectSuccess(int conn_fd){
-	
+	LogDebug("OnConnectSuccess %d\n", conn_fd);
+	SP_Channel channel = GetChannel(conn_fd, FD_TYPE_SERVER);
+	if (channel == nullptr){
+		LogDebug("OnConnectSuccess null %d\n", conn_fd);
+		return;
+	}
+	channel->SetSuccess(true);
+	UpdateEvent(conn_fd, EV_READ, channel);
 	MessageQueue::getInstance().MQ2S_Push(conn_fd, FD_TYPE_CONNECT, nullptr, 0);
 }
 
@@ -211,9 +216,9 @@ void Dispatcher::OnEventfd(int efd)
 		}
 		else if(mq->Type() == FD_TYPE_CONNECT){
 			int port = mq->Sockfd();
-			string ip(mq->Buffer());
+			const char* ip = mq->Buffer();
 
-			this->ConnectIpPort(ip.c_str(), port);
+			this->ConnectIpPort(ip, port);
 		}
 		else
 		{
@@ -382,10 +387,9 @@ void Dispatcher::ConnectIpPort(const char* ip, uint16_t port){
 			break;
 		}
 
+		AddChannel(conn_fd, FD_TYPE_SERVER, conn_ev);
 		ev_init(conn_ev, connector_cb);
 		AddEvent(conn_ev, conn_fd, ev_flags);
-
-		AddChannel(conn_fd, FD_TYPE_SERVER, conn_ev);
 	}while(false);
 }
 /*
@@ -468,14 +472,17 @@ void Dispatcher::connector_cb(struct ev_loop* loop, struct ev_io* watcher, int r
 	}
 	//noblocking socket connect success
 	if (!(EV_READ & revents) && (EV_WRITE & revents)){
-		LogDebug("connector_cb success %d\n", fd);
+		LogDebug("connector_cb connect success %d\n", fd);
 		Dispatcher::getInstance().OnConnectSuccess(fd);
+		return;
 	}
 
 	if (EV_READ & revents){
+		LogDebug("connector_cb READ %d\n", fd);
 		Dispatcher::getInstance().OnRead(fd, FD_TYPE_SERVER);
 	}
 	if (EV_WRITE & revents){
+		LogDebug("connector_cb WRITE %d\n", fd);
 		Dispatcher::getInstance().OnWrite(fd, FD_TYPE_SERVER);
 	}
 }
