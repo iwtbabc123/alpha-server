@@ -161,18 +161,6 @@ void Dispatcher::OnWrite(int fd, int fd_type){
 	}
 }
 
-void Dispatcher::OnConnectSuccess(int conn_fd){
-	LogDebug("OnConnectSuccess %d\n", conn_fd);
-	SP_Channel channel = GetChannel(conn_fd, FD_TYPE_SERVER);
-	if (channel == nullptr){
-		LogDebug("OnConnectSuccess null %d\n", conn_fd);
-		return;
-	}
-	channel->SetSuccess(true);
-	UpdateEvent(conn_fd, EV_READ, channel);
-	MessageQueue::getInstance().MQ2S_Push(conn_fd, FD_TYPE_CONNECT, nullptr, 0);
-}
-
 void Dispatcher::OnEventfd(int efd)
 {
 	LogDebug("EpollServer::OnEventfd %d\n",efd);
@@ -227,11 +215,34 @@ void Dispatcher::OnEventfd(int efd)
 		}
 	}
 }
-/*
-void Dispatcher::OnTimer(){
-	ConnectOtherServer();
+
+void Dispatcher::OnConnect(int fd, int revents){
+	SP_Channel channel = GetChannel(fd, FD_TYPE_SERVER);
+	if (channel == nullptr){
+		LogDebug("OnConnectSuccess null %d\n", fd);
+		return;
+	}
+	if (channel->GetSuccess() == false){
+		//connect
+		if (!(EV_READ & revents) && (EV_WRITE & revents)){
+			LogDebug("connector_cb connect success %d\n", fd);
+			channel->SetSuccess(true);
+			UpdateEvent(fd, EV_READ, channel);
+			MessageQueue::getInstance().MQ2S_Push(fd, FD_TYPE_CONNECT, nullptr, 0);
+		}	
+	}
+	else{
+		//read or write
+		if (EV_READ & revents){
+			LogDebug("connector_cb READ %d\n", fd);
+			OnRead(fd, FD_TYPE_SERVER);
+		}
+		if (EV_WRITE & revents){
+			LogDebug("connector_cb WRITE %d\n", fd);
+			OnWrite(fd, FD_TYPE_SERVER);
+		}
+	}
 }
-*/
 
 int Dispatcher::AddEvent(struct ev_io* ev, int fd, short events){
 	ev_io_set(ev, fd, events);
@@ -340,13 +351,6 @@ void Dispatcher::InitEventFd(){
 	ev_init(efd_watcher, eventfd_cb);
 	AddEvent(efd_watcher, eventfd_, EV_READ);
 }
-/*
-void Dispatcher::InitTimer(){
-	struct ev_timer* timeout_watcher = (struct ev_timer*) malloc(sizeof(struct ev_timer));
-	ev_timer_init(timeout_watcher, init_timeout_cb, 1, 3); //1s后开始，3s的循环间隔
-	ev_timer_start(loop_, timeout_watcher);
-}
-*/
 
 /*
 *此进程作为client连接某个server,
@@ -369,7 +373,7 @@ void Dispatcher::ConnectIpPort(const char* ip, uint16_t port){
 		int ret = netlib_connect(conn_fd, ip, port);
 		if (ret == 0){
 			LogDebug("Dispatcher::ConnectIpPort socket immediately");
-			OnConnectSuccess(conn_fd);
+			//OnConnectSuccess(conn_fd);
 		}else if(ret == -1 && errno == EINPROGRESS){
 			connect_immediately = false;
 			ev_flags = EV_READ | EV_WRITE;
@@ -390,38 +394,11 @@ void Dispatcher::ConnectIpPort(const char* ip, uint16_t port){
 		AddChannel(conn_fd, FD_TYPE_SERVER, conn_ev);
 		ev_init(conn_ev, connector_cb);
 		AddEvent(conn_ev, conn_fd, ev_flags);
+		if (connect_immediately){
+			OnConnect(conn_fd, EV_WRITE);
+		}
 	}while(false);
 }
-/*
-void Dispatcher::ConnectOtherServer(){
-	for (auto itr = connector_map_.begin(); itr != connector_map_.end(); ++itr){
-		SP_Connector connector = itr->second;
-		if ( !connector->IsSuccess() ){
-			//connect
-			int conn_fd = connector->Fd();
-			int ret = netlib_connect(conn_fd, connector->GetServerIp(), connector->GetServerPort());
-			if (ret == 0){
-				struct ev_io* conn_ev = (struct ev_io*) malloc(sizeof(struct ev_io));
-				if (conn_ev == nullptr){
-					LogError("malloc error in OnTryConnect\n");
-					return;
-				}
-
-				ev_init(conn_ev, connector_cb);
-				AddEvent(conn_ev, conn_fd, EV_READ);
-
-				connector->SetIoWatcher(conn_ev);  //加入ev_io
-				connector->SetSuccess(true);
-				
-				LogDebug("connect success:%s,%d\n", connector->GetServerIp(),connector->GetServerPort());
-			}
-			else{
-				LogDebug("connect fail:%d,%s,%d\n",conn_fd, connector->GetServerIp(), connector->GetServerPort());
-			}
-		}
-	}
-}
-*/
 
 void Dispatcher::accept_cb(struct ev_loop* loop, struct ev_io* watcher, int revents){
 	int fd = watcher->fd;
@@ -471,6 +448,7 @@ void Dispatcher::connector_cb(struct ev_loop* loop, struct ev_io* watcher, int r
 		return;
 	}
 	//noblocking socket connect success
+	/*
 	if (!(EV_READ & revents) && (EV_WRITE & revents)){
 		LogDebug("connector_cb connect success %d\n", fd);
 		Dispatcher::getInstance().OnConnectSuccess(fd);
@@ -485,11 +463,8 @@ void Dispatcher::connector_cb(struct ev_loop* loop, struct ev_io* watcher, int r
 		LogDebug("connector_cb WRITE %d\n", fd);
 		Dispatcher::getInstance().OnWrite(fd, FD_TYPE_SERVER);
 	}
+	*/
+	Dispatcher::getInstance().OnConnect(fd, revents);
 }
-/*
-void Dispatcher::init_timeout_cb(struct ev_loop* loop, struct ev_timer* watcher, int revents){
-	//LogDebug("init_timeout_cb \n");
-	Dispatcher::getInstance().OnTimer();
-}
-*/
+
 }

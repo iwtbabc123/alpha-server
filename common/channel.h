@@ -35,6 +35,10 @@ public:
 		success_ = success;
 	}
 
+	bool GetSuccess(){
+		return success_;
+	}
+
 private:
 	int fd_;
 	int fd_type_;
