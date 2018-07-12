@@ -5,12 +5,13 @@ import pymainbase
 pymainbase.import_dir(['library','proto_python','../pyscripts/gateservice'])
 
 from framework.GateServer import GateServer
+from defines import *
 
 gate_server = None
 
 def init(server_name):
-	global gate_server
 	'''初始化python server'''
+	global gate_server
 	print("py init",server_name)
 	try:
 		gate_server = GateServer(server_name)
@@ -23,5 +24,11 @@ def OnServer(sockfd, type, data):
 	serverobj = gate_server
 	if serverobj is None:
 		return 0, "fail"
-	pymainbase.OnServer(sockfd, type, data, serverobj)
+	if type in [FD_TYPE_ACCEPT, FD_TYPE_CLIENT, FD_TYPE_CLOSE]:
+		server_type = SERVER_TYPE_CLIENT
+	elif type in [FD_TYPE_CONNECT, FD_TYPE_SERVER]:
+		server_type = SERVER_TYPE_GAME
+	else:
+		server_type = None
+	pymainbase.OnServer(sockfd, type, data, serverobj, server_type)
 	return 1,"success"

@@ -15,8 +15,8 @@ class ClientProxy():
 
 class GameService(client_server_pb2.IServerService):
 	'''实现gpb rpc service'''
-	def __init__(self):
-		pass
+	def __init__(self, proxy_manager):
+		self._proxy_manager = proxy_manager
 
 	def connect_server(self, controller, request, _done):
 		rpc_channel = controller.rpc_channel
@@ -28,6 +28,7 @@ class GameService(client_server_pb2.IServerService):
 
 		response = common_pb2.ConnectServerReply()
 		response.entityid = entityid
+		response.clientid = request.clientid
 		if create_result:
 			response.type = common_pb2.ConnectServerReply.CONNECTED
 		else:

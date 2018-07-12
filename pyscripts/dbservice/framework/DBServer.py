@@ -8,11 +8,13 @@ class DBServer(CommonServerBase):
 	'''python逻辑层服务器'''
 	def __init__(self, server_name):
 		super().__init__(server_name)
+	
+	def init_service(self):
 		self.config = self.load_json_config()
 		self.mongoconfig = self.config['db1']['mongo']
 		pb_service = DBService(self.mongoconfig)
 		self.set_pb_service(pb_service)
-	
+
 	def tick(self):
 		pass
 	

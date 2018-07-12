@@ -1,5 +1,5 @@
-import logger
 from defines import *
+import logger
 import py2cpp
 
 class TcpConnection():
@@ -11,7 +11,7 @@ class TcpConnection():
 
 	def __init__(self, sockfd):
 		self.logger = logger.get_logger('TcpConnection')
-		self.sockfd = sockfd
+		self._sockfd = sockfd
 
 		#self.writebuff = b''
 		self.recv_buff_size = TcpConnection.DEFAULT_RECV_BUFFER
@@ -25,6 +25,10 @@ class TcpConnection():
 
 	#def setsockopt(self):
 	#	self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
+
+	@property
+	def socketfd(self):
+		return self._sockfd
 
 	def get_rpc_channel(self):
 		return self.rpc_channel

@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='common.proto',
   package='alpha.server',
   syntax='proto3',
-  serialized_pb=_b('\n\x0c\x63ommon.proto\x12\x0c\x61lpha.server\"\x06\n\x04Void\"\x89\x01\n\x14\x43onnectServerRequest\x12\x10\n\x08\x65ntityid\x18\x01 \x01(\t\x12<\n\x04type\x18\x02 \x01(\x0e\x32..alpha.server.ConnectServerRequest.RequestType\"!\n\x0bRequestType\x12\x12\n\x0eNEW_CONNECTION\x10\x00\"\x9d\x01\n\x12\x43onnectServerReply\x12\x10\n\x08\x65ntityid\x18\x01 \x01(\t\x12\x38\n\x04type\x18\x02 \x01(\x0e\x32*.alpha.server.ConnectServerReply.ReplyType\x12\x10\n\x08\x65xtramsg\x18\x03 \x01(\t\")\n\tReplyType\x12\r\n\tCONNECTED\x10\x00\x12\r\n\tFORBIDDEN\x10\x01\"E\n\rEntityMessage\x12\x10\n\x08\x65ntityid\x18\x01 \x01(\t\x12\x0e\n\x06method\x18\x02 \x01(\t\x12\x12\n\nparameters\x18\x03 \x01(\tB\x03\x90\x01\x01\x62\x06proto3')
+  serialized_pb=_b('\n\x0c\x63ommon.proto\x12\x0c\x61lpha.server\"\x06\n\x04Void\"\xab\x01\n\x14\x43onnectServerRequest\x12\x10\n\x08\x65ntityid\x18\x01 \x01(\t\x12\x10\n\x08\x63lientid\x18\x02 \x01(\t\x12\x0e\n\x06gateid\x18\x03 \x01(\t\x12<\n\x04type\x18\x04 \x01(\x0e\x32..alpha.server.ConnectServerRequest.RequestType\"!\n\x0bRequestType\x12\x12\n\x0eNEW_CONNECTION\x10\x00\"\xbf\x01\n\x12\x43onnectServerReply\x12\x10\n\x08\x65ntityid\x18\x01 \x01(\t\x12\x10\n\x08\x63lientid\x18\x02 \x01(\t\x12\x0e\n\x06gateid\x18\x03 \x01(\t\x12\x38\n\x04type\x18\x04 \x01(\x0e\x32*.alpha.server.ConnectServerReply.ReplyType\x12\x10\n\x08\x65xtramsg\x18\x05 \x01(\t\")\n\tReplyType\x12\r\n\tCONNECTED\x10\x00\x12\r\n\tFORBIDDEN\x10\x01\"E\n\rEntityMessage\x12\x10\n\x08\x65ntityid\x18\x01 \x01(\t\x12\x0e\n\x06method\x18\x02 \x01(\t\x12\x12\n\nparameters\x18\x03 \x01(\tB\x03\x90\x01\x01\x62\x06proto3')
 )
 
 
@@ -37,8 +37,8 @@ _CONNECTSERVERREQUEST_REQUESTTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=143,
-  serialized_end=176,
+  serialized_start=177,
+  serialized_end=210,
 )
 _sym_db.RegisterEnumDescriptor(_CONNECTSERVERREQUEST_REQUESTTYPE)
 
@@ -59,8 +59,8 @@ _CONNECTSERVERREPLY_REPLYTYPE = _descriptor.EnumDescriptor(
   ],
   containing_type=None,
   options=None,
-  serialized_start=295,
-  serialized_end=336,
+  serialized_start=363,
+  serialized_end=404,
 )
 _sym_db.RegisterEnumDescriptor(_CONNECTSERVERREPLY_REPLYTYPE)
 
@@ -104,8 +104,22 @@ _CONNECTSERVERREQUEST = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='type', full_name='alpha.server.ConnectServerRequest.type', index=1,
-      number=2, type=14, cpp_type=8, label=1,
+      name='clientid', full_name='alpha.server.ConnectServerRequest.clientid', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='gateid', full_name='alpha.server.ConnectServerRequest.gateid', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='type', full_name='alpha.server.ConnectServerRequest.type', index=3,
+      number=4, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -124,7 +138,7 @@ _CONNECTSERVERREQUEST = _descriptor.Descriptor(
   oneofs=[
   ],
   serialized_start=39,
-  serialized_end=176,
+  serialized_end=210,
 )
 
 
@@ -143,15 +157,29 @@ _CONNECTSERVERREPLY = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='type', full_name='alpha.server.ConnectServerReply.type', index=1,
-      number=2, type=14, cpp_type=8, label=1,
+      name='clientid', full_name='alpha.server.ConnectServerReply.clientid', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='gateid', full_name='alpha.server.ConnectServerReply.gateid', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b("").decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='type', full_name='alpha.server.ConnectServerReply.type', index=3,
+      number=4, type=14, cpp_type=8, label=1,
       has_default_value=False, default_value=0,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='extramsg', full_name='alpha.server.ConnectServerReply.extramsg', index=2,
-      number=3, type=9, cpp_type=9, label=1,
+      name='extramsg', full_name='alpha.server.ConnectServerReply.extramsg', index=4,
+      number=5, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -169,8 +197,8 @@ _CONNECTSERVERREPLY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=179,
-  serialized_end=336,
+  serialized_start=213,
+  serialized_end=404,
 )
 
 
@@ -214,8 +242,8 @@ _ENTITYMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=338,
-  serialized_end=407,
+  serialized_start=406,
+  serialized_end=475,
 )
 
 _CONNECTSERVERREQUEST.fields_by_name['type'].enum_type = _CONNECTSERVERREQUEST_REQUESTTYPE

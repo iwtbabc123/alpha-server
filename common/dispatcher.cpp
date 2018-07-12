@@ -373,7 +373,6 @@ void Dispatcher::ConnectIpPort(const char* ip, uint16_t port){
 		int ret = netlib_connect(conn_fd, ip, port);
 		if (ret == 0){
 			LogDebug("Dispatcher::ConnectIpPort socket immediately");
-			//OnConnectSuccess(conn_fd);
 		}else if(ret == -1 && errno == EINPROGRESS){
 			connect_immediately = false;
 			ev_flags = EV_READ | EV_WRITE;
@@ -447,23 +446,6 @@ void Dispatcher::connector_cb(struct ev_loop* loop, struct ev_io* watcher, int r
 		//LogError("error event in read or write\n");
 		return;
 	}
-	//noblocking socket connect success
-	/*
-	if (!(EV_READ & revents) && (EV_WRITE & revents)){
-		LogDebug("connector_cb connect success %d\n", fd);
-		Dispatcher::getInstance().OnConnectSuccess(fd);
-		return;
-	}
-
-	if (EV_READ & revents){
-		LogDebug("connector_cb READ %d\n", fd);
-		Dispatcher::getInstance().OnRead(fd, FD_TYPE_SERVER);
-	}
-	if (EV_WRITE & revents){
-		LogDebug("connector_cb WRITE %d\n", fd);
-		Dispatcher::getInstance().OnWrite(fd, FD_TYPE_SERVER);
-	}
-	*/
 	Dispatcher::getInstance().OnConnect(fd, revents);
 }
 

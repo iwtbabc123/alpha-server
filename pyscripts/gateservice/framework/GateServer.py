@@ -1,6 +1,8 @@
 from framework.GateService import GateService
+from framework.LogicClient import LogicClient
 from common.CommonServerBase import CommonServerBase
 from singleton import *
+from defines import *
 import json
 import py2cpp
 
@@ -8,9 +10,22 @@ import py2cpp
 class GateServer(CommonServerBase):
 	'''python逻辑层服务器'''
 	def __init__(self, server_name):
-		super().__init__(server_name)
-		pb_service = GateService()
-		self.set_pb_service(pb_service)
+		super().__init__(server_name, SERVER_TYPE_GATE)
+
+		self.server_channels = {}
+		self.server_stubs = {}
+		
+	def init_service(self):
+		#设置本服service
+		pb_service = GateService(self.proxy_manager)
+		self.set_pb_service(pb_service,SERVER_TYPE_CLIENT)
+		#设置其它服service
+		self.set_pb_service(LogicClient(self.proxy_manager),SERVER_TYPE_GAME)
+
+	def add_proxy(self, socketfd, rpc_channel, server_type):
+		if server_type == SERVER_TYPE_GAME:
+			proxy = LogicServerProxy(rpc_channel)
+			self.proxy_manager.add_server_proxy(socketfd, proxy)
 
 	def tick(self):
 		pass
@@ -46,7 +61,4 @@ class GateServer(CommonServerBase):
 			_port = s_config['port']
 			py2cpp.OnConnectServer(_ip, _port)
 		return True
-
-		
-		return content
 	
