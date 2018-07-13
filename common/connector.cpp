@@ -2,7 +2,7 @@
 
 namespace alpha{
 
-Connector::Connector(int fd, const char* server_ip, uint16_t port):Channel(fd, nullptr),
+Connector::Connector(int fd, const char* server_ip, uint16_t port):Channel(fd, 0,nullptr),
 		server_ip_(server_ip),port_(port),success_(false){
 
 }

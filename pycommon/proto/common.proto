@@ -12,8 +12,10 @@ message ConnectServerRequest {
 	enum RequestType {
 		NEW_CONNECTION = 0;
 	}
-	string entityid = 1;  //唯一识别的角色ID
-	RequestType type = 2;
+	string entityid = 1;	//唯一识别的角色ID
+	string clientid = 2;	//客户端ID
+	string gateid = 3;		//gateid
+	RequestType type = 4;
 }
 
 //Server->Client
@@ -23,8 +25,10 @@ message ConnectServerReply{
 		FORBIDDEN = 1;
 	}
 	string entityid = 1;	//唯一识别的角色ID
-	ReplyType type = 2;		//
-	string extramsg = 3;	//要给客户端的额外信息
+	string clientid = 2;	//客户端ID
+	string gateid = 3;		//gateid
+	ReplyType type = 4;		//
+	string extramsg = 5;	//要给客户端的额外信息
 }
 
 // Entity的RPC调用

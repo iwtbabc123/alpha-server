@@ -43,7 +43,7 @@ void MessageQueue::MQ2S_Push(int fd, int type, const char* buffer, int size){
 	MQ2S_Unlock();
 }
 
-	SP_MessageData MessageQueue::MQ2S_Pop(){
+SP_MessageData MessageQueue::MQ2S_Pop(){
 
 	MQ2S_Lock();
 	LogDebug("mq2s_pop before");
@@ -65,8 +65,9 @@ void MessageQueue::MQ2C_Push(int fd, int type, char* data, int size){
 	LogDebug("MessageQueue::mq2c_Push:%d,%d,%s,%d\n",fd, type ,data, size);
 	MQ2C_Lock();
 	
-	char* buffer = (char*)malloc(sizeof(char) * size);
+	char* buffer = (char*)malloc(sizeof(char) * size+1);
 	memcpy(buffer, data, size);
+	buffer[size] = '\n';
 
 	SP_MessageData queue(new MessageData(fd, type, buffer, size));
 	mq2c_.push_back(queue);
@@ -80,7 +81,7 @@ void MessageQueue::MQ2C_Push(int fd, int type, char* data, int size){
 	MQ2C_Unlock();
 }
 
-	SP_MessageData MessageQueue::MQ2C_Pop(){
+SP_MessageData MessageQueue::MQ2C_Pop(){
 	LogDebug("MessageQueue::mq2c_Pop\n");
 	MQ2C_Lock();
 

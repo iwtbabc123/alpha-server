@@ -57,9 +57,9 @@ void Server::thread_worker(void* params){
 	string script_path;
 	json_uptr_->GetJsonItem2(server_name_.c_str(), "script_path", script_path);
 
-	worker_uptr_.reset(new WorkerThread(script_path.c_str()));
+	worker_uptr_.reset(new WorkerThread(server_name_.c_str(), script_path.c_str()));
 
-	auto deal_func = std::bind(&WorkerThread::OnServer, worker_uptr_.get(), std::placeholders::_1);
+	auto deal_func = std::bind(&WorkerThread::OnWorkerLogic, worker_uptr_.get(), std::placeholders::_1);
 	Worker::getInstance().Start(deal_func);
 
 	printf("new thread_worker end\n");

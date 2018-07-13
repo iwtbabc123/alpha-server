@@ -46,10 +46,18 @@ class RpcChannel(service.RpcChannel):
         super(RpcChannel, self).__init__()
         self.logger = logger.get_logger("RpcChannel")
         self.rpc_service = rpc_service
-        self.conn = conn
+        self._conn = conn
 
         self.rpc_controller = RpcController(self)
         self.buff = Buffer()
+
+    @property
+    def conn(self):
+        return self._conn
+
+    @property
+    def socketfd(sself):
+        return self._conn.socketfd
 
     def set_rpc_service(self, rpc_service):
         self.rpc_service = rpc_service
@@ -60,7 +68,7 @@ class RpcChannel(service.RpcChannel):
         data = request.SerializeToString()
         package_length = PACKAGE_HEAD_LENGTH + len(data)
         self.logger.debug("RpcChannel.CallMethod, index:%s, data:%s"%(index, data))
-        self.conn.send_data(b''.join([struct.pack(PACKAGE_HEAD, package_length, index), data]))
+        self._conn.send_data(b''.join([struct.pack(PACKAGE_HEAD, package_length, index), data]))
 
     def input_data(self, data):
         self.logger.debug("RpcChannel.input_data, length:%d, type:%s"%(len(data), type(data)))

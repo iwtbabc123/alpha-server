@@ -8,11 +8,11 @@ using namespace alpha;
 
 class WorkerThread{
 public:
-	WorkerThread(const char* script_path);
+	WorkerThread(const char* server_name, const char* script_path);
 	~WorkerThread();
 
 public:
-	void OnServer(SP_MessageData mq);
+	void OnWorkerLogic(SP_MessageData mq);
 
 private:
 	PyObject* pModule_;
