@@ -1,10 +1,10 @@
 from framework.DBService import DBService
-from common.CommonServerBase import CommonServerBase
+from common.CommonServer import CommonServer
 from singleton import *
 import json
 
 @singleton
-class DBServer(CommonServerBase):
+class DBServer(CommonServer):
 	'''python逻辑层服务器'''
 	def __init__(self, server_name):
 		super().__init__(server_name)
@@ -13,7 +13,7 @@ class DBServer(CommonServerBase):
 		self.config = self.load_json_config()
 		self.mongoconfig = self.config['db1']['mongo']
 		pb_service = DBService(self.mongoconfig)
-		self.set_pb_service(pb_service)
+		self._client_service = pb_service
 
 	def tick(self):
 		pass

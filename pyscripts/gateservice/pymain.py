@@ -19,16 +19,16 @@ def init(server_name):
 	except Exception as e:
 		print("Exception:",e)
 
-
-def OnServer(sockfd, type, data):
+def OnClientProxy(sockfd, type, data):
 	serverobj = gate_server
 	if serverobj is None:
 		return 0, "fail"
-	if type in [FD_TYPE_ACCEPT, FD_TYPE_CLIENT, FD_TYPE_CLOSE]:
-		server_type = SERVER_TYPE_CLIENT
-	elif type in [FD_TYPE_CONNECT, FD_TYPE_SERVER]:
-		server_type = SERVER_TYPE_GAME
-	else:
-		server_type = None
-	pymainbase.OnServer(sockfd, type, data, serverobj, server_type)
+	pymainbase.OnClientProxy(sockfd, type, data, serverobj)
+	return 1,"success"
+
+def OnServerProxy(sockfd, type, data):
+	serverobj = gate_server
+	if serverobj is None:
+		return 0, "fail"
+	pymainbase.OnServerProxy(sockfd, type, data, serverobj)
 	return 1,"success"

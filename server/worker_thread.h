@@ -12,7 +12,7 @@ public:
 	~WorkerThread();
 
 public:
-	void OnServer(SP_MessageData mq);
+	void OnWorkerLogic(SP_MessageData mq);
 
 private:
 	PyObject* pModule_;

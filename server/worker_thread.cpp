@@ -123,18 +123,40 @@ WorkerThread::~WorkerThread(){
 	Py_Finalize();
 }
 
-void WorkerThread::OnServer(SP_MessageData q){
-	pResult_ = PyObject_CallMethod(pModule_, "OnServer", "iis#", q->Sockfd(), q->Type(), q->Buffer(),q->Size());
+void WorkerThread::OnWorkerLogic(SP_MessageData q){
+	int fd_type = q->Type();
+	const char* func_name = nullptr;
+
+	switch (fd_type){
+		case FD_TYPE_ACCEPT:
+		case FD_TYPE_CLIENT:
+		case FD_TYPE_CLOSE:{
+			func_name = "OnClientProxy";
+			break;
+		}
+		case FD_TYPE_CONNECT:
+		case FD_TYPE_SERVER:{
+			func_name = "OnServerProxy";
+			break;
+		}
+		default:
+			break;
+	}
+
+	if (func_name == nullptr){
+		LogError("OnWorkerLogic error:fd_type=%d\n", fd_type);
+		return;
+	}
+
+	pResult_ = PyObject_CallMethod(pModule_, func_name, "iis#", q->Sockfd(), q->Type(), q->Buffer(),q->Size());
 	if (pResult_ != nullptr){
 		char* ret;
 		int result = 0;
 
-		if (PyArg_ParseTuple(pResult_, "i|s",  &result, &ret) == -1)
-		{
+		if (PyArg_ParseTuple(pResult_, "i|s",  &result, &ret) == -1){
 			LogDebug("error return\n");
 		}
-		else
-		{
+		else{
 			LogDebug("return from py: %d, %s\n", result, ret);
 		}
 	}

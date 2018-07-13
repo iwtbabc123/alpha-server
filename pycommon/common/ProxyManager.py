@@ -4,10 +4,9 @@ import random
 
 class ProxyManager():
 	"""管理和client通信的proxy,以及和server通信的proxy"""
-	def __init__(self, server_type):
+	def __init__(self):
 		self.client_rpc_channel_mgr = RpcChannelMgr()
 		self.server_rpc_channel_mgr = RpcChannelMgr()
-		self._server_type = server_type
 
 		self.server_proxy = {}  # socketfd->ServerProxy
 
@@ -18,23 +17,23 @@ class ProxyManager():
 
 		self.server_ids = {}  # clientid->server socketfd
 
-	def get_rpc_channel(self, socketfd, server_type):
-		if server_type > self._server_type:
-			return self.server_rpc_channel_mgr[socketfd]
-		else:
-			return self.client_rpc_channel_mgr[socketfd]
+	def get_client_rpc_channel(self, socketfd):
+		return self.client_rpc_channel_mgr[socketfd]
 	
-	def set_rpc_channel(self, socketfd, rpc_channel, server_type):
-		if server_type > self._server_type:
-			self.server_rpc_channel_mgr[socketfd] = rpc_channel
-		else:
-			self.client_rpc_channel_mgr[socketfd] = rpc_channel
+	def get_server_rpc_channel(self, socketfd):
+		return self.server_rpc_channel_mgr[socketfd]
 	
-	def del_rpc_channel(self, socketfd, server_type):
-		if server_type > self._server_type:
-			del self.server_rpc_channel_mgr[socketfd]
-		else:
-			del self.client_rpc_channel_mgr[socketfd]
+	def set_client_rpc_channel(self, socketfd, rpc_channel):
+		self.client_rpc_channel_mgr[socketfd] = rpc_channel
+	
+	def set_server_rpc_channel(self, socketfd, rpc_channel):
+		self.server_rpc_channel_mgr[socketfd] = rpc_channel
+	
+	def del_client_rpc_channel(self, socketfd):
+		del self.client_rpc_channel_mgr[socketfd]
+	
+	def del_server_rpc_channel(self, socketfd):
+		del self.server_rpc_channel_mgr[socketfd]
 
 	def add_server_proxy(self, socketfd,  proxy):
 		self.server_proxy[socketfd] = proxy

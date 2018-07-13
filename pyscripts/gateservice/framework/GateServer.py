@@ -1,29 +1,26 @@
 from framework.GateService import GateService
 from framework.LogicClient import LogicClient
-from common.CommonServerBase import CommonServerBase
+from common.CommonServer import CommonServer
 from singleton import *
 from defines import *
 import json
 import py2cpp
 
 @singleton
-class GateServer(CommonServerBase):
+class GateServer(CommonServer):
 	'''python逻辑层服务器'''
 	def __init__(self, server_name):
-		super().__init__(server_name, SERVER_TYPE_GATE)
+		super().__init__(server_name)
 
-		self.server_channels = {}
-		self.server_stubs = {}
-		
 	def init_service(self):
 		#设置本服service
 		pb_service = GateService(self.proxy_manager)
-		self.set_pb_service(pb_service,SERVER_TYPE_CLIENT)
+		self._client_service = pb_service
 		#设置其它服service
-		self.set_pb_service(LogicClient(self.proxy_manager),SERVER_TYPE_GAME)
+		self._server_service = LogicClient(self.proxy_manager)
 
 	def add_proxy(self, socketfd, rpc_channel, server_type):
-		if server_type == SERVER_TYPE_GAME:
+		if server_type == PROCESS_TYPE_CLIENT:
 			proxy = LogicServerProxy(rpc_channel)
 			self.proxy_manager.add_server_proxy(socketfd, proxy)
 

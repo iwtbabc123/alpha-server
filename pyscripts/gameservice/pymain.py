@@ -7,15 +7,24 @@ pymainbase.import_dir(['library','proto_python','../pyscripts/gameservice'])
 from framework.GameServer import GameServer
 from defines import *
 
+game_server = None
+
 def init(server_name):
 	'''初始化python server'''
+	global game_server
 	print("py init",server_name)
 	try:
-		a = GameServer(server_name)
+		game_server = GameServer(server_name)
 	except Exception as e:
 		print("Exception:",e)
 
-def OnServer(sockfd, type, data):
-	serverobj = GameServer()
-	pymainbase.OnServer(sockfd, type, data, serverobj, SERVER_TYPE_GATE)
+def OnClientProxy(sockfd, type, data):
+	serverobj = game_server
+	if not serverobj:
+		return 0,"fail"
+	pymainbase.OnClientProxy(sockfd, type, data, serverobj)
 	return 1,"success"
+
+def OnServerProxy(sockfd, type, data):
+	pass
+
