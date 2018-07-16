@@ -17,6 +17,8 @@ class ProxyManager():
 
 		self.server_ids = {}  # clientid->server socketfd
 
+
+
 	def get_client_rpc_channel(self, socketfd):
 		return self.client_rpc_channel_mgr[socketfd]
 	
@@ -26,6 +28,8 @@ class ProxyManager():
 	def set_client_rpc_channel(self, socketfd, rpc_channel):
 		self.client_rpc_channel_mgr[socketfd] = rpc_channel
 	
+
+
 	def set_server_rpc_channel(self, socketfd, rpc_channel):
 		self.server_rpc_channel_mgr[socketfd] = rpc_channel
 	
@@ -34,6 +38,8 @@ class ProxyManager():
 	
 	def del_server_rpc_channel(self, socketfd):
 		del self.server_rpc_channel_mgr[socketfd]
+
+
 
 	def add_server_proxy(self, socketfd,  proxy):
 		print("add_server_proxy:socketfd=%d,proxy=%s"%(socketfd,proxy))
@@ -57,6 +63,11 @@ class ProxyManager():
 		proxy = self.server_proxy.get(socketfd)
 		return proxy
 	
+
+
+	def create_client_proxy(self, socketfd, clientproxy):
+		self.client_proxy[socketfd] = clientproxy
+
 	def get_client_proxy(self, clientid):
 		socketfd = self.client_ids.get(clientid)
 		if not socketfd:

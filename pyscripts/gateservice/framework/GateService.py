@@ -40,11 +40,12 @@ class GateService(client_server_pb2.IServerService):
 
 		print("recv client connect")
 		server_proxy = self._select_server_proxy(rpc_channel, request)
+		self._create_client_proxy(rpc_channel)
 		if server_proxy:
 			server_proxy.connect_server(None, request)
 		else:
 			print("connect game server fail")
-			client_proxy = self._get_client_proxy(rpc_channel)
+			client_proxy = self._get_client_proxy(request.clientid)
 			client_proxy.connect_reply(controller, response)
 
 	def entity_message(self, controller, request, _done):
@@ -65,9 +66,12 @@ class GateService(client_server_pb2.IServerService):
 		client_proxy = self._get_client_proxy(rpc_channel)
 		client_proxy.entity_message(controller, response)
 
-	def _get_client_proxy(self, rpc_channel):
+	def _get_client_proxy(self, clientid):
+		return self.proxy_manager.get_client_proxy(clientid)
+	
+	def _create_client_proxy(self, rpc_channel):
 		client_proxy = ClientProxy(rpc_channel)
-		return client_proxy
+		self.proxy_manager.create_client_proxy(rpc_channel.socketfd, client_proxy)
 
 	def _select_server_proxy(self, rpc_channel, request):
 		print("_select_server_proxy")

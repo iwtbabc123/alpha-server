@@ -34,6 +34,7 @@ class LogicClient(client_server_pb2.IClientService):
 		clientid = reply.clientid
 		proxy = self.proxy_manager.get_client_proxy(clientid)
 		if not proxy:
+			print("LogicClient connect_reply no proxy")
 			return
 		proxy.connect_reply(None, reply)
 	
