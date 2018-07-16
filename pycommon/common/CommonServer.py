@@ -1,6 +1,7 @@
 from common.ProxyManager import ProxyManager
 from rpc.TcpConnection import TcpConnection
 from rpc.RpcChannel import RpcChannel
+from defines import *
 
 class CommonServer():
 	"""通用的服务器基类"""
@@ -19,7 +20,7 @@ class CommonServer():
 	def add_client_rpc_channel(self, sockfd):
 		if not self._client_service:
 			return
-		conn = TcpConnection(sockfd)
+		conn = TcpConnection(sockfd, PROCESS_TYPE_CLIENT)
 		rpc_channel = RpcChannel(self._client_service, conn)
 		conn.attach_rpc_channel(rpc_channel)
 		self.proxy_manager.set_client_rpc_channel(sockfd, rpc_channel)
@@ -27,10 +28,11 @@ class CommonServer():
 	def add_server_rpc_channel(self, sockfd):
 		if not self._server_service:
 			return
-		conn = TcpConnection(sockfd)
+		conn = TcpConnection(sockfd, PROCESS_TYPE_SERVER)
 		rpc_channel = RpcChannel(self._server_service, conn)
 		conn.attach_rpc_channel(rpc_channel)
 		self.proxy_manager.set_server_rpc_channel(sockfd, rpc_channel)
+		self.add_proxy(sockfd, rpc_channel, PROCESS_TYPE_SERVER)
 	
 	def del_client_rpc_channel(self, sockfd):
 		self.proxy_manager.del_client_rpc_channel(sockfd)

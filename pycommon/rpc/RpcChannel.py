@@ -56,7 +56,7 @@ class RpcChannel(service.RpcChannel):
         return self._conn
 
     @property
-    def socketfd(sself):
+    def socketfd(self):
         return self._conn.socketfd
 
     def set_rpc_service(self, rpc_service):

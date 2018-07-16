@@ -21,19 +21,19 @@ def OnClientProxy(sockfd, type, data, serverobj):
 		except Exception as e:
 			print("Exception:",e)
 	elif type == FD_TYPE_CLIENT:
-		logger.debug('OnServer,type=FD_TYPE_READ,sock=%s'%sockfd)
+		logger.debug('OnClientProxy,type=FD_TYPE_READ,sock=%s'%sockfd)
 		try:
 			serverobj.handle_client_rpc_channel(sockfd, data)
 		except Exception as e:
 			print("Exception:",e)
 	elif type == FD_TYPE_CLOSE:
-		logger.debug('OnServer,type=FD_TYPE_CLOSE,sock=%s'%sockfd)
+		logger.debug('OnClientProxy,type=FD_TYPE_CLOSE,sock=%s'%sockfd)
 		try:
 			serverobj.del_client_rpc_channel(sockfd)
 		except Exception as e:
 			print("Exception:",e)
 	elif type == FD_TYPE_TIMER:
-		logger.debug('OnServer,type=FD_TYPE_TIMER,sock=%s'%sockfd)
+		logger.debug('OnClientProxy,type=FD_TYPE_TIMER,sock=%s'%sockfd)
 		from common import Timer
 		Timer.onTimer(sockfd)  # timerId
 		

@@ -15,4 +15,4 @@ def OnClient(sockfd, data):
 	alphaEngine.OnSocket(sockfd, FD_TYPE_CLIENT, data)
 
 def OnServer(sockfd, data):
-	alphaEngine.OnSocket(sockfd, FD_TYPE_SERVER, str(data, encoding = "utf8"))
+	alphaEngine.OnSocket(sockfd, FD_TYPE_SERVER, data)

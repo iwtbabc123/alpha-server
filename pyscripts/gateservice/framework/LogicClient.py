@@ -14,10 +14,10 @@ class LogicServerProxy():
 		return self._rpc_channel
 
 	def connect_server(self, _controller, _request):
-		self._stub.connect_server(_controller, _request)
+		self._stub.connect_server(_controller, _request, None)
 
 	def entity_message(self, _controller, _request):
-		self._stub.entity_message(_controller, _request)
+		self._stub.entity_message(_controller, _request, None)
 	
 class LogicClient(client_server_pb2.IClientService):
 	'''接收其它服务器发过来的消息'''

@@ -70,9 +70,11 @@ class GateService(client_server_pb2.IServerService):
 		return client_proxy
 
 	def _select_server_proxy(self, rpc_channel, request):
+		print("_select_server_proxy")
 		clientid = util.hash(request.SerializeToString())
 		request.clientid = clientid
 		client_socketfd = rpc_channel.socketfd
+		print("_select_server_proxy2")
 		return self.proxy_manager.select_server_proxy(clientid, client_socketfd)
 
 	def _get_server_proxy(self, socketfd):

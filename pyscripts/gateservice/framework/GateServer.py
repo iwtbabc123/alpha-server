@@ -1,5 +1,5 @@
 from framework.GateService import GateService
-from framework.LogicClient import LogicClient
+from framework.LogicClient import LogicClient,LogicServerProxy
 from common.CommonServer import CommonServer
 from singleton import *
 from defines import *
@@ -20,7 +20,7 @@ class GateServer(CommonServer):
 		self._server_service = LogicClient(self.proxy_manager)
 
 	def add_proxy(self, socketfd, rpc_channel, server_type):
-		if server_type == PROCESS_TYPE_CLIENT:
+		if server_type == PROCESS_TYPE_SERVER:
 			proxy = LogicServerProxy(rpc_channel)
 			self.proxy_manager.add_server_proxy(socketfd, proxy)
 

@@ -27,8 +27,9 @@ namespace alpha{
 #define FD_TYPE_CLIENT		2  //read or write client socket
 #define FD_TYPE_CLOSE		3  //close socket
 #define FD_TYPE_TIMER		4
-#define FD_TYPE_SERVER		5  //read or write server socket
-#define FD_TYPE_CONNECT		6  //connect to server
+#define FD_TYPE_CONNECT		5  //connect to server
+#define FD_TYPE_SERVER		6  //read or write server socket
+#define FD_TYPE_SERVER_CLOSE 7  //close server socket
 }
 
 #endif

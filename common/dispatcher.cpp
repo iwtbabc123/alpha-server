@@ -85,7 +85,7 @@ void Dispatcher::OnAccept(int fd){
 void Dispatcher::OnRead(int fd, int fd_type){
 	LogDebug("Dispatcher::OnRead:%d\n", fd);
 
-	if (fd_type == FD_TYPE_CLIENT){
+	if (fd_type == FD_TYPE_CLIENT || fd_type == FD_TYPE_SERVER){
 		char buffer[READ_BUF_SIZE] = {0};
 
 		int bytes = netlib_recv(fd, buffer, READ_BUF_SIZE);
@@ -94,7 +94,8 @@ void Dispatcher::OnRead(int fd, int fd_type){
 			RemoveEvent(fd,fd_type);
 			OnFdClosed(fd,fd_type);
 			LogInfo("Dispatcher::OnRead remote close fd: %d\n", fd);
-			MessageQueue::getInstance().MQ2S_Push(fd, FD_TYPE_CLOSE, nullptr, bytes);
+			int _close_type = fd_type == FD_TYPE_CLIENT ? FD_TYPE_CLOSE : FD_TYPE_SERVER_CLOSE;
+			MessageQueue::getInstance().MQ2S_Push(fd, _close_type, nullptr, bytes);
 		}
 		else if(bytes < 0){  //error
 			RemoveEvent(fd, fd_type);
@@ -106,18 +107,15 @@ void Dispatcher::OnRead(int fd, int fd_type){
 			memcpy(socket_data, buffer, bytes);
 			//std::string str_buf(buffer);
 			LogInfo("Dispatcher::OnRead %d bytes\n", bytes);
-			MessageQueue::getInstance().MQ2S_Push(fd, FD_TYPE_CLIENT, socket_data, bytes);
+			MessageQueue::getInstance().MQ2S_Push(fd, fd_type, socket_data, bytes);
 		}
-	}
-	else if(fd_type == FD_TYPE_SERVER){
-
 	}
 }
 
 void Dispatcher::OnWrite(int fd, int fd_type){
 	LogDebug("EpollServer::OnWrite:%d\n",fd);
 	
-	if (fd_type == FD_TYPE_CLIENT){
+	if (fd_type == FD_TYPE_CLIENT || fd_type == FD_TYPE_SERVER){
 		auto channel = this->GetChannel(fd, fd_type);
 		if (channel == nullptr)
 		{
@@ -156,9 +154,6 @@ void Dispatcher::OnWrite(int fd, int fd_type){
 
 		UpdateEvent(fd, events, channel);
 	}
-	else if (fd_type == FD_TYPE_SERVER){
-
-	}
 }
 
 void Dispatcher::OnEventfd(int efd)
@@ -180,7 +175,7 @@ void Dispatcher::OnEventfd(int efd)
 		auto mq = MessageQueue::getInstance().MQ2C_Pop();
 		if (mq == nullptr)
 			break;
-		if (mq->Type() == FD_TYPE_CLIENT){
+		if (mq->Type() == FD_TYPE_CLIENT || mq->Type() == FD_TYPE_SERVER){
 			auto channel = GetChannel(mq->Sockfd(), mq->Type());
 
 			if (channel == nullptr)
@@ -198,9 +193,6 @@ void Dispatcher::OnEventfd(int efd)
 				events |= EV_WRITE;
 			}
 			UpdateEvent(mq->Sockfd(), events, channel);
-		}
-		else if(mq->Type() == FD_TYPE_SERVER){
-
 		}
 		else if(mq->Type() == FD_TYPE_CONNECT){
 			int port = mq->Sockfd();

@@ -36,13 +36,16 @@ class ProxyManager():
 		del self.server_rpc_channel_mgr[socketfd]
 
 	def add_server_proxy(self, socketfd,  proxy):
+		print("add_server_proxy:socketfd=%d,proxy=%s"%(socketfd,proxy))
 		self.server_proxy[socketfd] = proxy
 	
 	def select_server_proxy(self, clientid, client_socketfd):
 		"""为客户端随机选择一个服务器连接"""
+		print("select_server_proxy:%s,%d,%d"%(clientid, client_socketfd, len(self.server_proxy)))
 		if not self.server_proxy:
 			return None
-		socketfd = random.choice(self.server_proxy.keys())
+		socketfd = random.choice(list(self.server_proxy.keys()))
+		print("select_server_proxy:%d"%socketfd)
 		self.server_ids[clientid] = socketfd
 		self.client_ids[clientid] = client_socketfd
 		return self.server_proxy[socketfd]

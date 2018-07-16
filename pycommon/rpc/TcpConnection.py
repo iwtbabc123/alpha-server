@@ -9,9 +9,10 @@ class TcpConnection():
 	ST_ESTABLISHED = 1
 	ST_DISCONNECTED = 2
 
-	def __init__(self, sockfd):
+	def __init__(self, sockfd, server_type):
 		self.logger = logger.get_logger('TcpConnection')
 		self._sockfd = sockfd
+		self._server_type = server_type  # TODO,如有必要可以拆分成TcpClient/TcpServer
 
 		#self.writebuff = b''
 		self.recv_buff_size = TcpConnection.DEFAULT_RECV_BUFFER
@@ -29,6 +30,10 @@ class TcpConnection():
 	@property
 	def socketfd(self):
 		return self._sockfd
+
+	@property
+	def server_type(self):
+		return self._server_type
 
 	def get_rpc_channel(self):
 		return self.rpc_channel
@@ -59,8 +64,11 @@ class TcpConnection():
 		print("TcpConnection send_data",type(data),len(data))
 		#self.writebuff += str(data, 'utf-8')
 		#self.writebuff += data
-		py2cpp.OnClient(self.sockfd, str(data, encoding = "utf8"))
-
+		if self.server_type == PROCESS_TYPE_CLIENT:
+			py2cpp.OnClient(self.socketfd, str(data, encoding = "utf8"))
+		elif self.server_type == PROCESS_TYPE_SERVER:
+			py2cpp.OnServer(self.socketfd, str(data, encoding = "utf8"))
+		
 	def recv_data(self,data):
 		print("recv_data")
 		if not self.rpc_channel:
