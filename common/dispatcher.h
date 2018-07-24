@@ -9,8 +9,8 @@
 
 namespace alpha{
 
-typedef std::shared_ptr<Channel> SP_Channel;
-//typedef std::shared_ptr<Connector> SP_Connector;
+//typedef std::shared_ptr<Channel> SP_Channel;
+typedef std::unique_ptr<Channel> UP_Channel;
 
 class Dispatcher{
 public:
@@ -49,11 +49,11 @@ private:
 private:
 	int AddEvent(struct ev_io* io_watcher, int fd, short events);
 
-	int UpdateEvent(int fd, short events, SP_Channel channel);
+	int UpdateEvent(int fd, short events, UP_Channel* channel);
 
 	void RemoveEvent(int fd, int fd_type);
 
-    SP_Channel GetChannel(int fd, int fd_type);
+    UP_Channel* GetChannel(int fd, int fd_type);
 
     void AddChannel(int fd, int fd_type, ev_io* io_watcher);
 
@@ -61,19 +61,15 @@ private:
 
 private:
     void InitEventFd();
-    //void InitTimer();
-    //void ConnectOtherServer();
 
 private:
     struct ev_loop* loop_;
     bool running_;
 
     int eventfd_;
-    typedef std::map<int, SP_Channel> ChannelMap;
-    //typedef std::map<int, SP_Connector> ConnectorMap;
+    typedef std::map<int, UP_Channel> ChannelMap;
     ChannelMap channel_map_;
     ChannelMap connector_map_;
-    //ConnectorMap connector_map_;
 
 private:
     Dispatcher::ChannelMap& _GetChannelMap(int fd_type);

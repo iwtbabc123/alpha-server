@@ -11,7 +11,7 @@ class DBServer(CommonServer):
 	
 	def init_service(self):
 		self.config = self.load_json_config()
-		self.mongoconfig = self.config['db1']['mongo']
+		self.mongoconfig = self.config[self.server_name]['mongo']
 		pb_service = DBService(self.mongoconfig)
 		self._client_service = pb_service
 

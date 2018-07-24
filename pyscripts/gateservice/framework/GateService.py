@@ -39,8 +39,8 @@ class GateService(client_server_pb2.IServerService):
 			response.type = common_pb2.ConnectServerReply.FORBIDDEN
 
 		print("recv client connect")
-		server_proxy = self._select_server_proxy(rpc_channel, request)
-		self._create_client_proxy(rpc_channel)
+		clientid = self._create_client_proxy(rpc_channel)
+		server_proxy = self._select_server_proxy(request, clientid)
 		if server_proxy:
 			server_proxy.connect_server(None, request)
 		else:
@@ -69,20 +69,19 @@ class GateService(client_server_pb2.IServerService):
 	def _get_client_proxy(self, clientid):
 		return self.proxy_manager.get_client_proxy(clientid)
 	
-	def _create_client_proxy(self, rpc_channel):
-		client_proxy = ClientProxy(rpc_channel)
-		self.proxy_manager.create_client_proxy(rpc_channel.socketfd, client_proxy)
-
-	def _select_server_proxy(self, rpc_channel, request):
-		print("_select_server_proxy")
+	def _create_client_proxy(self, rpc_channel, request):
 		clientid = util.hash(request.SerializeToString())
-		request.clientid = clientid
-		client_socketfd = rpc_channel.socketfd
-		print("_select_server_proxy2")
-		return self.proxy_manager.select_server_proxy(clientid, client_socketfd)
+		client_proxy = ClientProxy(rpc_channel)
+		self.proxy_manager.create_client_proxy(clientid, client_proxy)
+		return clientid
 
-	def _get_server_proxy(self, socketfd):
-		self.proxy_manager.get_server_proxy()
+	def _select_server_proxy(self, request, clientid):
+		print("_select_server_proxy")
+		request.clientid = clientid
+		return self.proxy_manager.select_server_proxy(clientid)
+
+	#def _get_server_proxy(self, socketfd):
+	#	self.proxy_manager.get_server_proxy()
 
 	def _create_entity(self, entityid):
 		'''创建Avatar对象'''

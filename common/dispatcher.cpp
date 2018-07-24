@@ -116,7 +116,7 @@ void Dispatcher::OnWrite(int fd, int fd_type){
 	LogDebug("EpollServer::OnWrite:%d\n",fd);
 	
 	if (fd_type == FD_TYPE_CLIENT || fd_type == FD_TYPE_SERVER){
-		auto channel = this->GetChannel(fd, fd_type);
+		UP_Channel* channel = this->GetChannel(fd, fd_type);
 		if (channel == nullptr)
 		{
 			LogError("EpollServer::OnWrite channel null\n");
@@ -125,9 +125,9 @@ void Dispatcher::OnWrite(int fd, int fd_type){
 
 		int events = EV_READ;
 
-		while(!channel->empty())
+		while(!(*channel)->empty())
 		{
-			auto mq = channel->pop_front();
+			auto mq = (*channel)->pop_front();
 
 			LogDebug("EpollServer::OnWrite send_len %d\n", mq->Size());
 
@@ -176,7 +176,7 @@ void Dispatcher::OnEventfd(int efd)
 		if (mq == nullptr)
 			break;
 		if (mq->Type() == FD_TYPE_CLIENT || mq->Type() == FD_TYPE_SERVER){
-			auto channel = GetChannel(mq->Sockfd(), mq->Type());
+			UP_Channel* channel = GetChannel(mq->Sockfd(), mq->Type());
 
 			if (channel == nullptr)
 			{
@@ -184,11 +184,11 @@ void Dispatcher::OnEventfd(int efd)
 				continue;
 			}
 
-			channel->push_back(mq);
+			(*channel)->push_back(mq);
 
 			//update channel
 			int events = EV_READ;
-			if (!channel->empty())
+			if (!(*channel)->empty())
 			{
 				events |= EV_WRITE;
 			}
@@ -209,16 +209,16 @@ void Dispatcher::OnEventfd(int efd)
 }
 
 void Dispatcher::OnConnect(int fd, int revents){
-	SP_Channel channel = GetChannel(fd, FD_TYPE_SERVER);
+	UP_Channel* channel = GetChannel(fd, FD_TYPE_SERVER);
 	if (channel == nullptr){
 		LogDebug("OnConnectSuccess null %d\n", fd);
 		return;
 	}
-	if (channel->GetSuccess() == false){
+	if ((*channel)->GetSuccess() == false){
 		//connect
 		if (!(EV_READ & revents) && (EV_WRITE & revents)){
 			LogDebug("connector_cb connect success %d\n", fd);
-			channel->SetSuccess(true);
+			(*channel)->SetSuccess(true);
 			UpdateEvent(fd, EV_READ, channel);
 			MessageQueue::getInstance().MQ2S_Push(fd, FD_TYPE_CONNECT, nullptr, 0);
 		}	
@@ -243,10 +243,10 @@ int Dispatcher::AddEvent(struct ev_io* ev, int fd, short events){
 	return 0;
 }
 
-int Dispatcher::UpdateEvent(int fd, short events, SP_Channel channel){
+int Dispatcher::UpdateEvent(int fd, short events, UP_Channel* channel){
 	//LogDebug("UpdateEvent:%d,%d\n", fd, events);
 
-	struct ev_io* io_watcher = channel->GetIoWatcher();
+	struct ev_io* io_watcher = (*channel)->GetIoWatcher();
 
 	if (io_watcher == nullptr){
 		LogError("UpdateEvent error: io_watcher null\n");
@@ -263,12 +263,12 @@ int Dispatcher::UpdateEvent(int fd, short events, SP_Channel channel){
 void Dispatcher::RemoveEvent(int fd, int channel_type){
 	LogDebug("RemoveEvent: %d\n",fd);
 
-	auto channel = this->GetChannel(fd, channel_type);
+	UP_Channel* channel = this->GetChannel(fd, channel_type);
 	if(channel == nullptr){
 		return;
 	}
 
-	struct ev_io* io_watcher = channel->GetIoWatcher();
+	struct ev_io* io_watcher = (*channel)->GetIoWatcher();
 	if (io_watcher == nullptr){
 		LogError("RemoveEvent error:io_watcher null\n");
 		return;
@@ -277,7 +277,7 @@ void Dispatcher::RemoveEvent(int fd, int channel_type){
 }
 
 
-SP_Channel Dispatcher::GetChannel(int fd, int fd_type){
+UP_Channel* Dispatcher::GetChannel(int fd, int fd_type){
 	auto& curr_map = _GetChannelMap(fd_type);
 
 	auto iter = curr_map.find(fd);
@@ -285,7 +285,7 @@ SP_Channel Dispatcher::GetChannel(int fd, int fd_type){
 		return nullptr;
 	}
 	else{
-		return iter->second;
+		return &(iter->second);
 	}
 }
 
@@ -298,8 +298,8 @@ void Dispatcher::AddChannel(int fd, int fd_type, struct ev_io* io_watcher)
 		LogWarning("AddChannel error, channel exists\n");
 	}
 	else{
-		SP_Channel channel(new Channel(fd, fd_type, io_watcher));
-		curr_map[fd] = channel;
+		//UP_Channel channel(new Channel(fd, fd_type, io_watcher));
+		curr_map[fd] = UP_Channel(new Channel(fd, fd_type, io_watcher));
 	}
 }
 
