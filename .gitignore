@@ -99,3 +99,11 @@ ENV/
 
 # mypy
 .mypy_cache/
+
+\.vscode/
+
+bin/server
+
+common/libcommon\.a
+
+tests/a\.out

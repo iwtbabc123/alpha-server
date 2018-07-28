@@ -1,0 +1,31 @@
+{
+    "log_level":"15"
+    ,"log_path":"../log/"
+    ,"need_gate":false
+    ,"gate_list":"gate1,gate2"
+    ,"game_list":"game1,game2"
+    ,"db_list":"db1,db2"
+    ,"gate1":{
+        "ip":"0.0.0.0"
+        ,"port":4000
+        ,"script_path":"gateservice"
+        ,"connect_server":"game_list"
+    }
+    ,"game1":{
+        "ip":"0.0.0.0"
+        ,"port":5000
+        ,"script_path":"gameservice"
+        ,"connect_server":"db_list"
+    }
+    ,"db1":{
+        "ip":"0.0.0.0"
+        ,"port":6000
+        ,"script_path":"dbservice"
+        ,"connect_server":"none"
+        ,"mongo":{
+            "ip":"127.0.0.1"
+            ,"port":27017
+        }
+    }
+
+}
