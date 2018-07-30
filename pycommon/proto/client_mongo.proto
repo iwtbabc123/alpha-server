@@ -1,0 +1,74 @@
+syntax="proto3";
+import "common.proto";
+package alpha.server;
+
+option py_generic_services = true;
+
+message FindDocRequest {
+	int32 callback_id = 1;
+	string db = 2;
+	string collection = 3;
+	string query = 4;
+	string fields = 5;
+	int32 limit = 6;
+}
+
+message UpdateDocRequest {
+	int32 callback_id = 1;
+	string db = 2;
+	string collection = 3;
+	string query = 4;
+	string doc = 5;
+}
+
+message InsertDocRequest {
+	int32 callback_id = 1;
+	string db = 2;
+	string collection = 3;
+	string doc = 4;
+}
+
+message FindDocReply {
+	int32 callback_id = 1;
+	bool status = 2;
+	repeated string docs = 3;
+}
+
+message UpdateDocReply {
+	int32 callback_id = 1;
+	bool status = 2;
+}
+
+message InsertDocReply {
+	int32 callback_id = 1;
+	bool status = 2;
+	string insert_id = 3;
+}
+
+// Client->Server
+service IDBService {
+	// 连接服务器，进行认证
+	rpc connect_server(ConnectServerRequest) returns (Void);
+	// Entity消息
+	rpc entity_message(EntityMessage) returns (Void);
+
+	rpc db_find_doc(FindDocRequest) returns (Void);
+	
+	rpc db_update_doc(UpdateDocRequest) returns (Void);
+
+	rpc db_insert_doc(InsertDocRequest) returns (Void);
+}
+
+// Server->Client
+service IDBClientService {
+	// 对客户端的连接请求进行回复
+	rpc connect_reply(ConnectServerReply) returns (Void);
+	// Entity消息 
+	rpc entity_message(EntityMessage) returns (Void);
+
+	rpc db_find_doc_reply(FindDocReply) returns (Void);
+
+	rpc db_update_doc_reply(UpdateDocReply) returns (Void);
+
+	rpc db_insert_doc_reply(InsertDocReply) returns (Void);
+}

@@ -1,0 +1,40 @@
+syntax="proto3";
+package alpha.server;
+
+option py_generic_services = true;
+
+message Void {
+
+}
+
+//Client->Server
+message ConnectServerRequest {
+	enum RequestType {
+		NEW_CONNECTION = 0;
+	}
+	string entityid = 1;	//唯一识别的角色ID
+	string clientid = 2;	//客户端ID
+	string gateid = 3;		//gateid
+	RequestType type = 4;
+}
+
+//Server->Client
+message ConnectServerReply{
+	enum ReplyType {
+		CONNECTED = 0;
+		FORBIDDEN = 1;
+	}
+	string entityid = 1;	//唯一识别的角色ID
+	string clientid = 2;	//客户端ID
+	string gateid = 3;		//gateid
+	ReplyType type = 4;		//
+	string extramsg = 5;	//要给客户端的额外信息
+}
+
+// Entity的RPC调用
+message EntityMessage {
+	string entityid = 1;	//唯一识别的角色ID	
+	string method = 2;		//Entity的方法名
+	// RPC调用的参数, 不强制如何序列化，可以用BSON, protobuf,或者其他
+	string parameters = 3;
+}
