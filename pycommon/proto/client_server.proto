@@ -3,6 +3,7 @@ import "common.proto";
 package alpha.server;
 
 option py_generic_services = true;
+option cc_generic_services = true;
 
 // Client->Server
 service IServerService {

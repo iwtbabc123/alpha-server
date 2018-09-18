@@ -2,6 +2,7 @@ syntax="proto3";
 package alpha.test;
 
 option py_generic_services = true;
+option cc_generic_services = true;
 
 message Void {}
 
